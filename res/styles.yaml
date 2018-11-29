@@ -1,11 +1,10 @@
 main_menu_frame_style:
-  bg: '#000000'
   highlightthickness: 2
+  bg: '#000000'
   highlightbackground: '#c868db'
   padx: 5
   pady: 10
 button_style:
-  font: button_font
   relief: flat
   highlightthickness: 0
   bg: '#c868db'
@@ -13,19 +12,17 @@ button_style:
   activebackground: '#ffffff'
   activeforeground: '#000000'
 help_menu_frame_style:
-  bg: '#000000'
   highlightthickness: 0
+  bg: '#000000'
   highlightbackground: '#000000'
   padx: 10
   pady: 10
 help_menu_header_label_style:
-  font: help_menu_header_label_font
   relief: flat
   highlightthickness: 0
   bg: '#000000'
   fg: '#c868db'
 help_menu_wrapper_label_style:
-  font: wrapper_menu_header_label_font
   relief: flat
   highlightthickness: 0
   bg: '#000000'

@@ -1,6 +1,5 @@
 from time import sleep
 from tkinter import *
-from tkinter.font import Font
 from yaml import load
 
 
@@ -9,9 +8,9 @@ class App:
 
     def __init__(self):
         self.rm = RM()
-        self.data = self.rm[App]
-        self.tk = self.prepare_tk(self.data['tk'])
-        self.delay = self.data['delay']
+        data = self.rm[App]
+        self.tk = self.prepare_tk(data['tk'])
+        self.delay = data['delay']
         self.main_menu = MainMenu(self.rm, self.tk)
 
     # noinspection PyMethodMayBeStatic
@@ -38,69 +37,45 @@ class RM:
 
     def __init__(self):
         self.data = {
-            RM.FONTS: self.load_data('res/fonts.yaml'), RM.STYLES: self.load_data('res/styles.yaml'),
-            RM.POSITIONS: self.load_data('res/positions.yaml'), App: self.load_data(App.DATA_PATH),
-            MainMenu: self.load_data(MainMenu.DATA_PATH), HelpMenu: self.load_data(HelpMenu.DATA_PATH)
+            RM.FONTS: self.prepare_data('res/fonts.yaml'), RM.STYLES: self.prepare_data('res/styles.yaml'),
+            RM.POSITIONS: self.prepare_data('res/positions.yaml'), App: self.prepare_data(App.DATA_PATH),
+            MainMenu: self.prepare_data(MainMenu.DATA_PATH), HelpMenu: self.prepare_data(HelpMenu.DATA_PATH)
         }
-        self.data = {key: self.prepare_data(value) for key, value in self.data.items()}
 
     # noinspection PyMethodMayBeStatic
-    def load_data(self, path):
+    def prepare_data(self, path):
         with open(path) as stream:
             return load(stream)
 
-    def prepare_data(self, data):
-        prepared_data = {}
-        # print(self.data[RM.FONTS]['button_font'])
-        for key1, value1 in data.items():
-            if type(data[key1]) is dict:
-                prepared_data[key1] = {}
-                for key2, value2 in value1.items():
-                    prepared_data[key1][key2] = self.bind(key2, value2)
-            else:
-                prepared_data[key1] = value1
-        return prepared_data
-
-    # noinspection PyMethodMayBeStatic
-    def bind(self, key, value):
-        if key == 'font':
-            return Font(self.data[RM.FONTS][value])
-        elif key == 'style':
-            return self[RM.STYLES][value]
-        elif key == 'position':
-            return self[RM.POSITIONS][value]
-        return value
-
-    def __getitem__(self, key):
-        return self.data[key]
+    def __getitem__(self, res):
+        return self.data[res]
 
 
 class Menu:
     def __init__(self, rm, tk):
         self.rm = rm
-        self.data = None
         self.tk = tk
         self.hidden = False
         self.frame = None
         self.frame_place_info = None
 
     def prepare_frame(self, data):
-        frame = Frame(self.tk, data['style'])
-        frame.place(data['position'])
+        frame = Frame(self.tk, self.rm[RM.STYLES][data['style']])
+        frame.place(self.rm[RM.POSITIONS][data['position']])
         frame.update()
         return frame
 
     def prepare_button(self, data, command):
-        button = Button(self.frame, data['style'])
-        button.configure(text=data['text'], command=command)
-        button.pack(data['position'])
+        button = Button(self.frame, self.rm[RM.STYLES][data['style']])
+        button.configure(text=data['text'], font=self.rm[RM.FONTS][data['font']], command=command)
+        button.pack(self.rm[RM.POSITIONS][data['position']])
         button.update()
         return button
 
     def prepare_label(self, data):
-        label = Label(self.frame, data['style'])
-        label.configure(text=data['text'])
-        label.pack()
+        label = Label(self.frame, self.rm[RM.STYLES][data['style']])
+        label.configure(text=data['text'], font=self.rm[RM.FONTS][data['font']])
+        label.pack(self.rm[RM.POSITIONS][data['position']])
         label.update()
         return label
 
@@ -121,16 +96,19 @@ class MainMenu(Menu):
 
     def __init__(self, rm, tk):
         super().__init__(rm, tk)
-        self.data = self.rm[MainMenu]
-        self.frame = self.prepare_frame(self.data['frame'])
-        self.buttons = (
-            self.prepare_button(self.data['play_button'], self.__play),
-            self.prepare_button(self.data['info_button'], self.__info),
-            self.prepare_button(self.data['help_button'], self.__help),
-            self.prepare_button(self.data['exit_button'], self.__exit)
-        )
+        data = self.rm[MainMenu]
+        self.frame = self.prepare_frame(data['frame'])
+        self.buttons = self.prepare_buttons(data)
         self.help_menu = None
         self.active = True
+
+    def prepare_buttons(self, data):
+        return (
+            self.prepare_button(data['play_button'], self.__play),
+            self.prepare_button(data['info_button'], self.__info),
+            self.prepare_button(data['help_button'], self.__help),
+            self.prepare_button(data['exit_button'], self.__exit)
+        )
 
     def __play(self):
         pass
@@ -155,11 +133,11 @@ class HelpMenu(Menu):
 
     def __init__(self, rm, tk, main_menu):
         super().__init__(rm, tk)
-        self.data = self.rm[HelpMenu]
-        self.frame = self.prepare_frame(self.data['frame'])
-        self.header_label = self.prepare_label(self.data['header_label'])
-        self.wrapper_label = self.prepare_label(self.data['wrapper_label'])
-        self.back_button = self.prepare_button(self.data['back_button'], self.__back)
+        data = self.rm[HelpMenu]
+        self.frame = self.prepare_frame(data['frame'])
+        self.header_label = self.prepare_label(data['header_label'])
+        self.wrapper_label = self.prepare_label(data['wrapper_label'])
+        self.back_button = self.prepare_button(data['back_button'], self.__back)
         self.main_menu = main_menu
 
     def __back(self):
