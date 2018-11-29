@@ -1,0 +1,24 @@
+frame:
+  style: info_menu_frame_style
+  position: frame_position
+table_header_label:
+  text: Info
+  font: info_menu_table_header_label_font
+  style:
+  position:
+table_name_label:
+  font: info_menu_table_name_label_font
+  style:
+  position:
+table_result_label:
+  font: info_menu_table_result_label_font
+  style:
+  position:
+table_separator:
+  style:
+  position:
+back_button:
+  text: Back
+  font: button_font
+  style: button_style
+  position: info_menu_back_button_position

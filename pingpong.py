@@ -1,6 +1,7 @@
 from time import sleep
 from tkinter import *
-from yaml import load
+# from tkinter.ttk import Separator
+from yaml import load, dump
 
 
 class App:
@@ -37,18 +38,19 @@ class RM:
 
     def __init__(self):
         self.data = {
-            RM.FONTS: self.prepare_data('res/fonts.yaml'), RM.STYLES: self.prepare_data('res/styles.yaml'),
-            RM.POSITIONS: self.prepare_data('res/positions.yaml'), App: self.prepare_data(App.DATA_PATH),
-            MainMenu: self.prepare_data(MainMenu.DATA_PATH), HelpMenu: self.prepare_data(HelpMenu.DATA_PATH)
+            RM.FONTS: load_data('res/fonts.yaml'), RM.STYLES: load_data('res/styles.yaml'),
+            RM.POSITIONS: load_data('res/positions.yaml'), App: load_data(App.DATA_PATH),
+            MainMenu: load_data(MainMenu.DATA_PATH), InfoMenu: load_data(InfoMenu.DATA_PATH),
+            HelpMenu: load_data(HelpMenu.DATA_PATH)
         }
-
-    # noinspection PyMethodMayBeStatic
-    def prepare_data(self, path):
-        with open(path) as stream:
-            return load(stream)
 
     def __getitem__(self, res):
         return self.data[res]
+
+
+def load_data(path):
+    with open(path) as stream:
+        return load(stream)
 
 
 class Menu:
@@ -99,6 +101,7 @@ class MainMenu(Menu):
         data = self.rm[MainMenu]
         self.frame = self.prepare_frame(data['frame'])
         self.buttons = self.prepare_buttons(data)
+        self.info_menu = None
         self.help_menu = None
         self.active = True
 
@@ -114,18 +117,47 @@ class MainMenu(Menu):
         pass
 
     def __info(self):
-        pass
+        if self.info_menu is None:
+            self.info_menu = InfoMenu(self.rm, self.tk, self)
+        self.hide()
+        self.info_menu.visualize()
 
     def __help(self):
-        self.help_menu = self.check_help_menu()
+        if self.help_menu is None:
+            self.help_menu = HelpMenu(self.rm, self.tk, self)
         self.hide()
         self.help_menu.visualize()
 
-    def check_help_menu(self):
-        return HelpMenu(self.rm, self.tk, self) if self.help_menu is None else self.help_menu
-
     def __exit(self):
+        if self.info_menu is not None:
+            dump_data(self.info_menu.table_data, InfoMenu.TABLE_DATA_PATH)
         self.active = False
+
+
+class InfoMenu(Menu):
+    DATA_PATH = 'res/info_menu.yaml'
+    TABLE_DATA_PATH = 'res/table.yaml'
+
+    def __init__(self, rm, tk, main_menu):
+        super().__init__(rm, tk)
+        data = self.rm[InfoMenu]
+        self.table_data = load_data(InfoMenu.TABLE_DATA_PATH)
+        self.frame = self.prepare_frame(data['frame'])
+
+        self.back_button = self.prepare_button(data['back_button'], self.__back)
+        self.main_menu = main_menu
+
+    def prepare_table(self, data):
+        pass
+
+    def __back(self):
+        self.hide()
+        self.main_menu.visualize()
+
+
+def dump_data(data, path):
+    with open(path, 'w') as stream:
+        dump(data, stream, default_flow_style=False)
 
 
 class HelpMenu(Menu):
