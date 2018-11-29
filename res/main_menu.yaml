@@ -1,0 +1,19 @@
+frame:
+  style: frame_style
+  position: main_menu_frame_position
+play_button:
+  text: Play
+  style: button_style
+  position: main_menu_button_position
+info_button:
+  text: Info
+  style: button_style
+  position: main_menu_button_position
+help_button:
+  text: Help
+  style: button_style
+  position: main_menu_button_position
+exit_button:
+  text: Exit
+  style: button_style
+  position: main_menu_button_position

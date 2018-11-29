@@ -1,0 +1,25 @@
+frame_position:
+  relx: 0.5
+  rely: 0.5
+  anchor: center
+main_menu_button_position:
+  padx: 25
+  pady: 18
+  ipadx: 70
+  ipady: 8
+  fill: x
+help_menu_header_label_position:
+  padx: 30
+  pady: 5
+  ipadx: 30
+  ipady: 5
+help_menu_wrapper_label_position:
+  padx: 20
+  pady: 5
+  ipadx: 20
+  ipady: 5
+help_menu_back_button_position:
+  padx: 25
+  pady: 5
+  ipadx: 100
+  ipady: 8

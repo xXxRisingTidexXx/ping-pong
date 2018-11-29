@@ -3,92 +3,25 @@ from tkinter import *
 from tkinter.font import Font
 from yaml import load
 
-PROPERTIES = 'res/properties.yaml'
-TK = 'tk'
-TITLE = 'title'
-RESIZABLE = 'resizable'
-WIDTH = 'width'
-HEIGHT = 'height'
-WM_ATTRIBUTES = 'wm_attributes'
-BACKGROUND = 'background'
-DELAY = 'delay'
-MAIN_MENU = 'main_menu'
-FRAME = 'frame'
-BG = 'bg'
-HIGHLIGHTTHICKNESS = 'highlightthickness'
-HIGHLIGHTBACKGROUND = 'highlightbackground'
-PADX = 'padx'
-PADY = 'pady'
-RELX = 'relx'
-RELY = 'rely'
-ANCHOR = 'anchor'
-BUTTON = 'button'
-TEXTS = 'texts'
-FONT = 'font'
-FAMILY = 'family'
-SIZE = 'size'
-WEIGHT = 'weight'
-STYLE = 'style'
-RELIEF = 'relief'
-FG = 'fg'
-ACTIVEBACKGROUND = 'activebackground'
-ACTIVEFOREGROUND = 'activeforeground'
-IPADX = 'ipadx'
-IPADY = 'ipady'
-FILL = 'fill'
-
-HELP_MENU = 'help_menu'
-HEADER_LABEL = 'header_label'
-TEXT = 'text'
-WRAPPER_LABEL = 'wrapper_label'
-BACK_BUTTON = 'back_button'
-
-# FOREGROUND = 'foreground'
-# CANVAS = 'canvas'
-# BD = 'bd'
-# HIGHLIGHTCOLOR = 'highlightcolor'
-# BORDERWIDTH = 'borderwidth'
-# OFFSET = 'offset'
-# OUTLINE = 'outline'
-# GAME = 'game'
-# INFO_MENU = 'info_menu'
-# SUMMARY = 'summary'
-# PADDLE = 'paddle'
-# BALL = 'ball'
-# X1 = 'x1'
-# Y1 = 'y1'
-# X2 = 'x2'
-# Y2 = 'y2'
-# X0 = 'x0'
-# Y0 = 'y0'
-# DX = 'dx'
-# DY = 'dy'
-# DXL = 'dxl'
-# DXR = 'dxr'
-# LEFT_ARROW = 'left_arrow'
-# RIGHT_ARROW = 'right_arrow'
-
 
 class App:
-    def __init__(self):
-        self.data = self.prepare_data()
-        self.tk = self.prepare_tk(self.data[TK])
-        self.delay = self.data[DELAY]
-        self.main_menu = MainMenu(self.data[MAIN_MENU], self.tk)
+    DATA_PATH = 'res/app.yaml'
 
-    # noinspection PyMethodMayBeStatic
-    def prepare_data(self):
-        with open(PROPERTIES) as stream:
-            return load(stream)
+    def __init__(self):
+        self.rm = RM()
+        self.data = self.rm[App]
+        self.tk = self.prepare_tk(self.data['tk'])
+        self.delay = self.data['delay']
+        self.main_menu = MainMenu(self.rm, self.tk)
 
     # noinspection PyMethodMayBeStatic
     def prepare_tk(self, data):
         tk = Tk()
-        tk.title(data[TITLE])
+        tk.title(data['title'])
         tk.geometry('{}x{}'.format(tk.winfo_screenwidth(), tk.winfo_screenheight()))
-        tk.resizable(data[RESIZABLE][WIDTH], data[RESIZABLE][HEIGHT])
-        tk.wm_attributes(data[WM_ATTRIBUTES][0], data[WM_ATTRIBUTES][1])
-        tk.configure(background=data[BACKGROUND])
+        tk.resizable(data['resizable']['width'], data['resizable']['height'])
+        tk.wm_attributes(data['wm_attributes'][0], data['wm_attributes'][1])
+        tk.configure(background=data['background'])
         return tk
 
     def start(self):
@@ -98,49 +31,76 @@ class App:
             sleep(self.delay)
 
 
+class RM:
+    FONTS = 'fonts'
+    STYLES = 'styles'
+    POSITIONS = 'positions'
+
+    def __init__(self):
+        self.data = {
+            RM.FONTS: self.load_data('res/fonts.yaml'), RM.STYLES: self.load_data('res/styles.yaml'),
+            RM.POSITIONS: self.load_data('res/positions.yaml'), App: self.load_data(App.DATA_PATH),
+            MainMenu: self.load_data(MainMenu.DATA_PATH), HelpMenu: self.load_data(HelpMenu.DATA_PATH)
+        }
+        self.data = {key: self.prepare_data(value) for key, value in self.data.items()}
+
+    # noinspection PyMethodMayBeStatic
+    def load_data(self, path):
+        with open(path) as stream:
+            return load(stream)
+
+    def prepare_data(self, data):
+        prepared_data = {}
+        # print(self.data[RM.FONTS]['button_font'])
+        for key1, value1 in data.items():
+            if type(data[key1]) is dict:
+                prepared_data[key1] = {}
+                for key2, value2 in value1.items():
+                    prepared_data[key1][key2] = self.bind(key2, value2)
+            else:
+                prepared_data[key1] = value1
+        return prepared_data
+
+    # noinspection PyMethodMayBeStatic
+    def bind(self, key, value):
+        if key == 'font':
+            return Font(self.data[RM.FONTS][value])
+        elif key == 'style':
+            return self[RM.STYLES][value]
+        elif key == 'position':
+            return self[RM.POSITIONS][value]
+        return value
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+
 class Menu:
-    def __init__(self, data, tk):
-        self.data = data
+    def __init__(self, rm, tk):
+        self.rm = rm
+        self.data = None
         self.tk = tk
         self.hidden = False
-        self.frame = self.prepare_frame(self.data[FRAME])
+        self.frame = None
         self.frame_place_info = None
 
     def prepare_frame(self, data):
-        frame = Frame(self.tk, bg=data[BG], highlightthickness=data[HIGHLIGHTTHICKNESS],
-                      highlightbackground=data[HIGHLIGHTBACKGROUND], padx=data[PADX], pady=data[PADY])
-        frame.place(relx=data[RELX], rely=data[RELY], anchor=data[ANCHOR])
+        frame = Frame(self.tk, data['style'])
+        frame.place(data['position'])
         frame.update()
         return frame
 
-    def prepare_button(self, data, command, text=None, font=None):
-        text = self.check_text(data, text)
-        font = self.check_font(data, font)
-        style = data[STYLE]
-        button = Button(self.frame, text=text, font=font, command=command, relief=style[RELIEF],
-                        highlightthickness=style[HIGHLIGHTTHICKNESS], bg=style[BG], fg=style[FG],
-                        activebackground=style[ACTIVEBACKGROUND], activeforeground=style[ACTIVEFOREGROUND])
-        button.pack(padx=style[PADX], pady=style[PADY], ipadx=style[IPADX], ipady=style[IPADY], fill=style[FILL])
+    def prepare_button(self, data, command):
+        button = Button(self.frame, data['style'])
+        button.configure(text=data['text'], command=command)
+        button.pack(data['position'])
         button.update()
         return button
 
-    # noinspection PyMethodMayBeStatic
-    def check_text(self, data, text):
-        return data[TEXT] if text is None else text
-
-    def check_font(self, data, font):
-        return self.prepare_font(data[FONT]) if font is None else font
-
-    # noinspection PyMethodMayBeStatic
-    def prepare_font(self, data):
-        return Font(family=data[FAMILY], size=data[SIZE], weight=data[WEIGHT])
-
-    def prepare_label(self, data, text=None, font=None):
-        text = self.check_text(data, text)
-        font = self.check_font(data, font)
-        label = Label(self.frame, text=text, font=font, relief=data[RELIEF],
-                      highlightthickness=data[HIGHLIGHTTHICKNESS], bg=data[BG], fg=data[FG])
-        label.pack(padx=data[PADX], pady=data[PADY], ipadx=data[IPADX], ipady=data[IPADY])
+    def prepare_label(self, data):
+        label = Label(self.frame, data['style'])
+        label.configure(text=data['text'])
+        label.pack()
         label.update()
         return label
 
@@ -157,19 +117,20 @@ class Menu:
 
 
 class MainMenu(Menu):
-    def __init__(self, data, tk):
-        super().__init__(data, tk)
-        self.buttons = self.prepare_buttons(self.data[BUTTON])
+    DATA_PATH = 'res/main_menu.yaml'
+
+    def __init__(self, rm, tk):
+        super().__init__(rm, tk)
+        self.data = self.rm[MainMenu]
+        self.frame = self.prepare_frame(self.data['frame'])
+        self.buttons = (
+            self.prepare_button(self.data['play_button'], self.__play),
+            self.prepare_button(self.data['info_button'], self.__info),
+            self.prepare_button(self.data['help_button'], self.__help),
+            self.prepare_button(self.data['exit_button'], self.__exit)
+        )
         self.help_menu = None
         self.active = True
-
-    def prepare_buttons(self, data):
-        texts = data[TEXTS]
-        font = self.prepare_font(data[FONT])
-        return self.prepare_button(data, self.__play, texts[0], font), \
-            self.prepare_button(data, self.__info, texts[1], font), \
-            self.prepare_button(data, self.__help, texts[2], font), \
-            self.prepare_button(data, self.__exit, texts[3], font)
 
     def __play(self):
         pass
@@ -183,18 +144,22 @@ class MainMenu(Menu):
         self.help_menu.visualize()
 
     def check_help_menu(self):
-        return HelpMenu(self.data[HELP_MENU], self.tk, self) if self.help_menu is None else self.help_menu
+        return HelpMenu(self.rm, self.tk, self) if self.help_menu is None else self.help_menu
 
     def __exit(self):
         self.active = False
 
 
 class HelpMenu(Menu):
-    def __init__(self, data, tk, main_menu):
-        super().__init__(data, tk)
-        self.header_label = self.prepare_label(self.data[HEADER_LABEL])
-        self.wrapper_label = self.prepare_label(self.data[WRAPPER_LABEL])
-        self.back_button = self.prepare_button(self.data[BUTTON], self.__back)
+    DATA_PATH = 'res/help_menu.yaml'
+
+    def __init__(self, rm, tk, main_menu):
+        super().__init__(rm, tk)
+        self.data = self.rm[HelpMenu]
+        self.frame = self.prepare_frame(self.data['frame'])
+        self.header_label = self.prepare_label(self.data['header_label'])
+        self.wrapper_label = self.prepare_label(self.data['wrapper_label'])
+        self.back_button = self.prepare_button(self.data['back_button'], self.__back)
         self.main_menu = main_menu
 
     def __back(self):

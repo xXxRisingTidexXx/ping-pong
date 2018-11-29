@@ -1,0 +1,12 @@
+button_font:
+  family: Helvetica
+  size: 18
+  weight: bold
+help_menu_header_label_font:
+  family: Verdana
+  size: 16
+  weight: bold
+help_menu_wrapper_label_font:
+  family: Verdana
+  size: 14
+  weight: normal

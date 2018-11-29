@@ -1,0 +1,10 @@
+tk:
+  title: Ping-pong
+  resizable:
+    width: 0
+    height: 0
+  wm_attributes:
+    - -topmost
+    - 1
+  background: '#000000'
+delay: 0.01
