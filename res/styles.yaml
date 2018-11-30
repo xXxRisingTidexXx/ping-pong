@@ -12,11 +12,9 @@ button_style:
   activebackground: '#ffffff'
   activeforeground: '#000000'
 info_menu_frame_style:
-  highlightthickness: 0
   bg: '#000000'
-  highlightbackground: '#000000'
-  padx: 0
-  pady: 15
+  padx: 30
+  pady: 20
 info_menu_table_header_label_style:
   relief: flat
   highlightthickness: 0
@@ -32,20 +30,15 @@ info_menu_table_result_label_style:
   highlightthickness: 0
   bg: '#000000'
   fg: '#ffffff'
-info_menu_table_separator_style:
-  orientation: horizontal
-
 help_menu_frame_style:
-  highlightthickness: 1
   bg: '#000000'
-  highlightbackground: '#c868db'
   padx: 10
   pady: 30
 help_menu_header_label_style:
   relief: flat
   highlightthickness: 0
   bg: '#000000'
-  fg: '#c868db'
+  fg: '#bca3d6'
 help_menu_wrapper_label_style:
   relief: flat
   highlightthickness: 0

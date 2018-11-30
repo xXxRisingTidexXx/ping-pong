@@ -1,6 +1,6 @@
 from time import sleep
 from tkinter import *
-# from tkinter.ttk import Separator
+from tkinter.ttk import Separator
 from yaml import load, dump
 
 
@@ -20,7 +20,7 @@ class App:
         tk.title(data['title'])
         tk.geometry('{}x{}'.format(tk.winfo_screenwidth(), tk.winfo_screenheight()))
         tk.resizable(data['resizable']['width'], data['resizable']['height'])
-        tk.wm_attributes(data['wm_attributes'][0], data['wm_attributes'][1])
+        tk.wm_attributes(*data['wm_attributes'])
         tk.configure(background=data['background'])
         return tk
 
@@ -81,6 +81,11 @@ class Menu:
         label.update()
         return label
 
+    def prepare_separator(self, data):
+        separator = Separator(self.frame, orient=data['orient'])
+        separator.pack(self.rm[RM.POSITIONS][data['position']])
+        return separator
+
     def hide(self):
         if not self.hidden:
             self.hidden = True
@@ -101,6 +106,7 @@ class MainMenu(Menu):
         data = self.rm[MainMenu]
         self.frame = self.prepare_frame(data['frame'])
         self.buttons = self.prepare_buttons(data)
+        self.game = None
         self.info_menu = None
         self.help_menu = None
         self.active = True
@@ -130,29 +136,66 @@ class MainMenu(Menu):
 
     def __exit(self):
         if self.info_menu is not None:
-            dump_data(self.info_menu.table_data, InfoMenu.TABLE_DATA_PATH)
+            self.info_menu.save()
         self.active = False
+
+
+# Here should be Game class and Summary class
+# Put the result of a last game to update info using self.info_menu.update(); take it from self.game.summary
 
 
 class InfoMenu(Menu):
     DATA_PATH = 'res/info_menu.yaml'
-    TABLE_DATA_PATH = 'res/table.yaml'
 
     def __init__(self, rm, tk, main_menu):
         super().__init__(rm, tk)
         data = self.rm[InfoMenu]
-        self.table_data = load_data(InfoMenu.TABLE_DATA_PATH)
         self.frame = self.prepare_frame(data['frame'])
-
+        self.table = Table(self, data['table'])
         self.back_button = self.prepare_button(data['back_button'], self.__back)
         self.main_menu = main_menu
 
-    def prepare_table(self, data):
-        pass
+    def update(self, name, result):
+        self.table.update(name, result)
+
+    def save(self):
+        self.table.save()
 
     def __back(self):
         self.hide()
         self.main_menu.visualize()
+
+
+class Table:
+    CONTENT_PATH = 'res/table.yaml'
+
+    def __init__(self, info_menu, data):
+        self.info_menu = info_menu
+        self.content = load_data(Table.CONTENT_PATH)
+        self.rows = len(self.content)
+        self.header_label = self.info_menu.prepare_label(data['header_label'])
+        self.carcass = self.prepare_carcass(data['separator'], data['name_label'], data['result_label'])
+        self.fill()
+
+    # noinspection PyUnusedLocal
+    def prepare_carcass(self, separator_data, name_label_data, result_label_data):
+        return [{
+            'separator': self.info_menu.prepare_separator(separator_data),
+            'name_label': self.info_menu.prepare_label(name_label_data),
+            'result_label': self.info_menu.prepare_label(result_label_data)
+        } for i in range(self.rows)]
+
+    def fill(self):
+        for i in range(self.rows):
+            self.carcass[i]['name_label'].configure(text=self.content[i]['name'])
+            self.carcass[i]['result_label'].configure(text=self.content[i]['result'])
+
+    def update(self, name, result):
+        self.content.append({'name': name, 'result': result})
+        self.content = sorted(self.content, key=lambda r: r['result'], reverse=True)[:self.rows]
+
+    def save(self):
+        dump_data(self.content, Table.CONTENT_PATH)
 
 
 def dump_data(data, path):
@@ -179,24 +222,24 @@ class HelpMenu(Menu):
 
 # class Game:
 #     """
-#     All game processes occur at this class; session data is stored here as well.
+#     All game processes occur at this class; session content is stored here as well.
 #     The game is 2D, that's why there's an (xOy) coordinate system.
 #     The beginning O(0, 0) is situated at the top left corner of the canvas, so Y axis is directed downwards, and X
 #     axis is directed rightwards.
 #     That's why if object's <dx> (horizontal shift) > 0, it moves rightwards; if <dx> < 0, it moves leftwards;
 #     if <dy> (vertical shift) > 0, object moves downwards; if <dy> < 0, it moves upwards.
 #     """
-#     def __init__(self, data, canvas):
-#         self.data = data
+#     def __init__(self, content, canvas):
+#         self.content = content
 #         self.canvas = canvas
 #         self.active = True
-#         self.paddle = Paddle(canvas, self.data[PADDLE])
-#         self.ball = Ball(canvas, self.data[BALL], self.paddle.id)
+#         self.paddle = Paddle(canvas, self.content[PADDLE])
+#         self.ball = Ball(canvas, self.content[BALL], self.paddle.id)
 #
 #     def __prepare_canvas(self):
-#         data = self.data[CANVAS]
-#         canvas = Canvas(self.tk, width=data[WIDTH], height=data[HEIGHT], bg=data[BG],
-#                         bd=data[BD], highlightthickness=data[HIGHLIGHTTHICKNESS])
+#         content = self.content[CANVAS]
+#         canvas = Canvas(self.tk, width=content[WIDTH], height=content[HEIGHT], bg=content[BG],
+#                         bd=content[BD], highlightthickness=content[HIGHLIGHTTHICKNESS])
 #         canvas.pack()
 #         canvas.update()
 #         return canvas
@@ -215,14 +258,14 @@ class HelpMenu(Menu):
 #         dxl:  paddle's left movement in pixels per 1 tact
 #         dxr:  paddle's right movement in pixels per 1 tact
 #     """
-#     def __init__(self, canvas, data):
+#     def __init__(self, canvas, content):
 #         self.canvas = canvas
-#         self.id = self.canvas.create_rectangle(data[X1], data[Y1], data[X2], data[Y2], fill=data[FILL])
-#         self.dxl = data[DXL]
-#         self.dxr = data[DXR]
-#         self.canvas.move(self.id, data[X0], data[Y0])
-#         self.canvas.bind_all(data[LEFT_ARROW], self.__move_left)
-#         self.canvas.bind_all(data[RIGHT_ARROW], self.__move_right)
+#         self.id = self.canvas.create_rectangle(content[X1], content[Y1], content[X2], content[Y2], fill=content[FILL])
+#         self.dxl = content[DXL]
+#         self.dxr = content[DXR]
+#         self.canvas.move(self.id, content[X0], content[Y0])
+#         self.canvas.bind_all(content[LEFT_ARROW], self.__move_left)
+#         self.canvas.bind_all(content[RIGHT_ARROW], self.__move_right)
 #
 #     # noinspection PyUnusedLocal
 #     def __move_left(self, event):
@@ -254,15 +297,15 @@ class HelpMenu(Menu):
 #         dx:  horizontal shift in pixels per 1 tact
 #         dy:  vertical shift in pixels per 1 tact
 #     """
-#     def __init__(self, canvas, data, paddle_id):
+#     def __init__(self, canvas, content, paddle_id):
 #         self.canvas = canvas
 #         self.canvas_width = self.canvas.winfo_width()
 #         self.canvas_height = self.canvas.winfo_height()
-#         self.id = self.canvas.create_oval(data[X1], data[Y1], data[X2], data[Y2], fill=data[FILL])
+#         self.id = self.canvas.create_oval(content[X1], content[Y1], content[X2], content[Y2], fill=content[FILL])
 #         self.paddle_id = paddle_id
-#         self.dx = choice(data[DX])
-#         self.dy = choice(data[DY])
-#         self.canvas.move(self.id, data[X0], data[Y0])
+#         self.dx = choice(content[DX])
+#         self.dy = choice(content[DY])
+#         self.canvas.move(self.id, content[X0], content[Y0])
 #
 #     def move(self):
 #         """

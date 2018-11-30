@@ -1,6 +1,5 @@
-button_font: Helvetica 18 bold
-info_menu_table_header_label_font: Arial 15 bold
-info_menu_table_name_label_font: Montserrat 14 bold
-info_menu_table_result_label_font: Montserrat 14 normal
-help_menu_header_label_font: Arial 16 bold
-help_menu_wrapper_label_font: Verdana 14 normal italic
+button_font: Times 18 bold
+header_label_font: Courier 22 bold
+info_menu_table_name_label_font: Helvetica 14 bold
+info_menu_table_result_label_font: Helvetica 14 normal
+help_menu_wrapper_label_font: Verdana 14 normal

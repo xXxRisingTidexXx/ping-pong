@@ -1,15 +1,10 @@
-place_1:
-  name: null
+- name: '-'
   result: 0
-place_2:
-  name: null
+- name: '-'
   result: 0
-place_3:
-  name: null
+- name: '-'
   result: 0
-place_4:
-  name: null
+- name: '-'
   result: 0
-place_5:
-  name: null
+- name: '-'
   result: 0

@@ -3,7 +3,7 @@ frame:
   position: frame_position
 header_label:
   text: Ping-pong v0.1.0
-  font: help_menu_header_label_font
+  font: header_label_font
   style: help_menu_header_label_style
   position: help_menu_header_label_position
 wrapper_label:
@@ -16,7 +16,7 @@ wrapper_label:
   style: help_menu_wrapper_label_style
   position: help_menu_wrapper_label_position
 back_button:
-  text: Back
+  text: BACK
   font: button_font
   style: button_style
   position: help_menu_back_button_position

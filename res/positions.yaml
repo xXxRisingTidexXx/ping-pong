@@ -12,7 +12,6 @@ info_menu_table_header_label_position:
   padx: 30
   pady: 5
   ipadx: 30
-  ipady: 5
 info_menu_table_name_label_position:
   padx: 20
   pady: 5
@@ -22,13 +21,13 @@ info_menu_table_result_label_position:
   padx: 20
   pady: 5
   ipadx: 20
-  ipady: 5
 info_menu_table_separator_position:
-
+  pady: 5
+  fill: x
 info_menu_back_button_position:
   padx: 20
-  pady: 0
-  ipadx: 100
+  pady: 55
+  ipadx: 130
   ipady: 10
 help_menu_header_label_position:
   padx: 30
@@ -43,5 +42,5 @@ help_menu_wrapper_label_position:
 help_menu_back_button_position:
   padx: 25
   pady: 5
-  ipadx: 100
+  ipadx: 130
   ipady: 10

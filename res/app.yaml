@@ -6,5 +6,7 @@ tk:
   wm_attributes:
     - -topmost
     - 1
+    - -type
+    - splash
   background: '#000000'
 delay: 0.01
