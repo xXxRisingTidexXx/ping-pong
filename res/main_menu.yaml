@@ -1,23 +1,24 @@
 frame:
   style: main_menu_frame_style
   position: frame_position
-play_button:
-  text: Play
-  font: button_font
-  style: button_style
-  position: main_menu_button_position
-info_button:
-  text: Info
-  font: button_font
-  style: button_style
-  position: main_menu_button_position
-help_button:
-  text: Help
-  font: button_font
-  style: button_style
-  position: main_menu_button_position
-exit_button:
-  text: Exit
-  font: button_font
-  style: button_style
-  position: main_menu_button_position
+buttons:
+  play_button:
+    text: Play
+    font: button_font
+    style: button_style
+    position: main_menu_button_position
+  info_button:
+    text: Info
+    font: button_font
+    style: button_style
+    position: main_menu_button_position
+  help_button:
+    text: Help
+    font: button_font
+    style: button_style
+    position: main_menu_button_position
+  exit_button:
+    text: Exit
+    font: button_font
+    style: button_style
+    position: main_menu_button_position

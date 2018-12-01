@@ -11,6 +11,11 @@ button_style:
   fg: '#000000'
   activebackground: '#ffffff'
   activeforeground: '#000000'
+game_score_label_style:
+  relief: flat
+  highlightthickness: 0
+  bg: '#000000'
+  fg: '#a882d0'
 info_menu_frame_style:
   bg: '#000000'
   padx: 30

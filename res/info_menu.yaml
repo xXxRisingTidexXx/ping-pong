@@ -2,6 +2,7 @@ frame:
   style: info_menu_frame_style
   position: frame_position
 table:
+  rows: 5
   header_label:
     text: INFO
     font: header_label_font

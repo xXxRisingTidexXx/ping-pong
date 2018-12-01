@@ -1,37 +1,47 @@
-#    canvas:
-#      width: 1000
-#      height: 600
-#      bg: '#000000'
-#      bd: 0
-#      highlightthickness: 0
-#    paddle:
-#      x1: 0
-#      y1: 0
-#      x2: 150
-#      y2: 10
-#      fill: '#ffffff'
-#      x0: 200
-#      y0: 450
-#      dxl: -4
-#      dxr: 4
-#      left_arrow: <Key-Left>
-#      right_arrow: <Key-Right>
-#    ball:
-#      x1: 0
-#      y1: 0
-#      x2: 20
-#      y2: 20
-#      fill: '#ffffff'
-#      x0: 455
-#      y0: 170
-#      dx:
-#        - -3
-#        - -2
-#        - -1
-#        - 1
-#        - 2
-#        - 3
-#      dy:
-#        - -3
-#        - -2
-#        - -1
+canvas:
+  highlightthickness: 0
+  bg: '#000000'
+score_label:
+  text: 0
+  font: game_score_label_font
+  style: game_score_label_style
+  position: game_score_label_position
+paddle:
+  rectangle:
+    x1: 0
+    y1: 0
+    x2: 150
+    y2: 10
+    style:
+      width: 0
+      fill: '#ffffff'
+    x0: 650
+    y0: 600
+  dxl: -4
+  dxr: 4
+  left_arrow: <Key-Left>
+  right_arrow: <Key-Right>
+ball:
+  oval:
+    x1: 0
+    y1: 0
+    x2: 20
+    y2: 20
+    style:
+      width: 0
+      fill: '#ffffff'
+    x0: 455
+    y0: 170
+  dx:
+    - -3
+    - -2
+    - -1
+    - 1
+    - 2
+    - 3
+  dy:
+    - -3
+    - -2
+    - -1
+  dt: 0.01
+delay: 0.01
