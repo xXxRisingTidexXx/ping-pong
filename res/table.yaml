@@ -1,10 +1,10 @@
-- name: xxx
-  result: 0
-- name: xxx
-  result: 0
-- name: xxx
-  result: 0
-- name: xxx
-  result: 0
+- name: xx
+  result: 5
+- name: xx
+  result: 5
+- name: xx
+  result: 5
+- name: Danya
+  result: 5
 - name: xxx
   result: 0

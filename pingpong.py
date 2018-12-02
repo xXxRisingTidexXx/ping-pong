@@ -12,10 +12,11 @@ class App:
     def __init__(self):
         self.rm = RM()
         self.wm = WM(self.rm)
+        self.cache = Cache(self.rm)
         data = self.rm[App]
         self.tk = self.wm.prepare_tk(data['tk'])
         self.delay = data['delay']
-        self.main_menu = MainMenu(self.rm, self.wm, self.tk)
+        self.main_menu = MainMenu(self.rm, self.wm, self.cache, self.tk)
 
     def start(self):
         while self.main_menu.active:
@@ -51,12 +52,9 @@ class RM:
             return load(stream)
 
     # noinspection PyMethodMayBeStatic
-    def write(self, path, data):
+    def write(self, data, path):
         with open(path, 'w') as stream:
             dump(data, stream, default_flow_style=False)
-
-    def update(self, path, data):
-        self.write(path, self.read(path).extend(data))
 
 
 class WM:
@@ -107,6 +105,24 @@ class WM:
         return separator
 
 
+class Cache:
+    def __init__(self, rm):
+        self.rm = rm
+        self.data = {Table.CONTENT: self.rm.read(Table.CONTENT_PATH)}
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def update(self, key, value, updater):
+        self[key] = updater(self[key], value)
+
+    def save(self, key, path):
+        self.rm.write(self[key], path)
+
+
 class Menu:
     def __init__(self, rm, wm, tk):
         self.rm = rm
@@ -131,13 +147,14 @@ class Menu:
 class MainMenu(Menu):
     DATA_PATH = 'res/main_menu.yaml'
 
-    def __init__(self, rm, wm, tk):
+    def __init__(self, rm, wm, cache, tk):
         super().__init__(rm, wm, tk)
+        self.cache = cache
         self.active = True
         data = self.rm[MainMenu]
         self.frame = self.wm.prepare_frame(self.tk, data['frame'])
         self.buttons = self.prepare_buttons(data['buttons'])
-        self.last_player = {'name': 'xx', 'result': 0}  # later change it to None
+        self.last_player = {'name': 'Danya', 'result': 5}  # later we will delete it
         self.info_menu = None
         self.help_menu = None
 
@@ -151,8 +168,13 @@ class MainMenu(Menu):
 
     def __play(self):
         self.hide()
-        Game(self).play()
-        # self.rm.update(Table.CONTENT_PATH, [self.last_player])
+        Game(self).play()  # later we will extract game statistics from cache, and self.last_player will be deleted
+        self.cache.update(Table.CONTENT, self.last_player, self.__appender)
+
+    # noinspection PyMethodMayBeStatic
+    def __appender(self, lst, value):
+        lst.append(value)
+        return lst
 
     def __info(self):
         self.hide()
@@ -169,8 +191,7 @@ class MainMenu(Menu):
         self.help_menu.visualize()
 
     def __exit(self):
-        if self.info_menu is not None:
-            self.info_menu.save()
+        self.cache.save(Table.CONTENT, Table.CONTENT_PATH)
         self.active = False
 
 
@@ -183,11 +204,11 @@ class Game:
         self.tk = main_menu.tk
         self.main_menu = main_menu
         data = self.rm[Game]
+        self.delay = data['delay']
         self.canvas = self.wm.prepare_canvas(self.tk, data['canvas'], self.tk.winfo_width(), self.tk.winfo_height())
         # self.score_label = self.wm.prepare_label(self.canvas, data['score_label'])
         self.paddle = Paddle(self.canvas, data['paddle'])
-        self.ball = Ball(self.canvas, data['ball'], self.paddle.id)
-        self.delay = data['delay']
+        self.ball = Ball(self.canvas, data['ball'], self.paddle.id, self.delay)
 
     def play(self):
         while self.ball.flies():
@@ -216,21 +237,27 @@ class Paddle:
 
     # noinspection PyUnusedLocal
     def __move_left(self, event):
-        self.canvas.move(self.id, self.dxl if self.canvas.coords(self.id)[0] > 0 else 0, 0)
+        self.canvas.move(self.id, self.dxl if self.hit_left_border() else 0, 0)
+
+    def hit_left_border(self):
+        return self.canvas.coords(self.id)[0] > 0
 
     # noinspection PyUnusedLocal
     def __move_right(self, event):
-        self.canvas.move(self.id, self.dxr if self.canvas.coords(self.id)[2] < self.canvas.winfo_width() else 0, 0)
+        self.canvas.move(self.id, self.dxr if self.hit_right_border() else 0, 0)
+
+    def hit_right_border(self):
+        return self.canvas.coords(self.id)[2] < self.canvas.winfo_width()
 
 
 class Ball:
-    def __init__(self, canvas, data, paddle_id):
+    def __init__(self, canvas, data, paddle_id, dt):
         self.canvas = canvas
         self.id = self.prepare_oval(data['oval'])
         self.paddle_id = paddle_id
         self.dx = choice(data['dx'])
         self.dy = choice(data['dy'])
-        self.dt = data['dt']
+        self.dt = dt
 
     def prepare_oval(self, data):
         _id = self.canvas.create_oval(data['x1'], data['y1'], data['x2'], data['y2'], data['style'])
@@ -242,9 +269,12 @@ class Ball:
 
     def move(self):
         coords = self.canvas.coords(self.id)
-        self.dx = 1 if self.hit_left_border(coords) else -1 if self.hit_right_border(coords) else self.dx
-        self.dy = 1 if self.hit_top_border(coords) else -1 if self.hit_paddle(coords) else self.dy
+        self.dx = self.move_x(coords)
+        self.dy = self.move_y(coords)
         self.canvas.move(self.id, self.dx, self.dy)
+
+    def move_x(self, coords):
+        return 1 if self.hit_left_border(coords) else -1 if self.hit_right_border(coords) else self.dx
 
     # noinspection PyMethodMayBeStatic
     def hit_left_border(self, coords):
@@ -252,6 +282,9 @@ class Ball:
 
     def hit_right_border(self, coords):
         return coords[2] >= self.canvas.winfo_width()
+
+    def move_y(self, coords):
+        return 1 if self.hit_top_border(coords) else -1 if self.hit_paddle(coords) else self.dy
 
     # noinspection PyMethodMayBeStatic
     def hit_top_border(self, coords):
@@ -294,32 +327,29 @@ class InfoMenu(Menu):
         super().__init__(main_menu.rm, main_menu.wm, main_menu.tk)
         data = self.rm[InfoMenu]
         self.frame = self.wm.prepare_frame(self.tk, data['frame'])
-        self.table = Table(self, data['table'], self.rm.read(Table.CONTENT_PATH))
+        self.table = Table(self, main_menu.cache, data['table'])
         self.back_button = self.wm.prepare_button(self.frame, data['back_button'], self.__back)
         self.main_menu = main_menu
 
     def __back(self):
-        self.save()
         self.hide()
         self.main_menu.visualize()
 
-    def save(self):
-        self.rm.write(Table.CONTENT_PATH, self.table.content)
-
     def update(self):
-        self.table.update(self.rm.read(Table.CONTENT_PATH))
+        self.table.update()
 
 
 class Table:
+    CONTENT = 'content'
     CONTENT_PATH = 'res/table.yaml'
 
-    def __init__(self, info_menu, data, content):
+    def __init__(self, info_menu, cache, data):
         self.info_menu = info_menu
+        self.cache = cache
         self.rows = data['rows']
         self.header_label = self.info_menu.wm.prepare_label(self.info_menu.frame, data['header_label'])
         self.carcass = self.prepare_carcass(data['separator'], data['name_label'], data['result_label'])
-        self.content = self.limit(content)
-        self.fill()
+        self.update()
 
     # noinspection PyUnusedLocal
     def prepare_carcass(self, separator_data, name_label_data, result_label_data):
@@ -329,16 +359,18 @@ class Table:
             'result_label': self.info_menu.wm.prepare_label(self.info_menu.frame, result_label_data)
         } for i in range(self.rows)]
 
+    def update(self):
+        content = self.limit(self.cache[Table.CONTENT])
+        self.fill(content)
+        self.cache[Table.CONTENT] = content
+
+    def fill(self, content):
+        for i in range(self.rows):
+            self.carcass[i]['name_label'].configure(text=content[i]['name'])
+            self.carcass[i]['result_label'].configure(text=content[i]['result'])
+
     def limit(self, content):
         return sorted(content, key=lambda r: r['result'], reverse=True)[:self.rows]
-
-    def fill(self):
-        for i in range(self.rows):
-            self.carcass[i]['name_label'].configure(text=self.content[i]['name'])
-            self.carcass[i]['result_label'].configure(text=self.content[i]['result'])
-
-    def update(self, content):
-        self.content = self.limit(content)
 
 
 class HelpMenu(Menu):
