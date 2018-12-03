@@ -1,21 +1,20 @@
 delay: 0.01
 canvas:
-  highlightthickness: 0
-  bg: '#000000'
-score_label:
+  style: game_canvas_style
+  position: game_canvas_position
+score:
+  x1: 50
+  y1: 70
   text: 0
-  font: game_score_label_font
-  style: game_score_label_style
-  position: game_score_label_position
+  font: game_score_font
+  style: game_score_style
 paddle:
   rectangle:
     x1: 0
     y1: 0
     x2: 150
     y2: 10
-    style:
-      width: 0
-      fill: '#ffffff'
+    style: game_paddle_rectangle_style
     x0: 650
     y0: 600
   dxl: -5
@@ -28,19 +27,15 @@ ball:
     y1: 0
     x2: 20
     y2: 20
-    style:
-      width: 0
-      fill: '#ffffff'
+    style: game_ball_oval_style
     x0: 455
     y0: 170
   dx:
     - -3
     - -2
-    - -1
-    - 1
     - 2
     - 3
   dy:
     - -3
     - -2
-    - -1
+  dt: 0.01

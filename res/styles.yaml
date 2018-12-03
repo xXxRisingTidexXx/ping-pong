@@ -11,11 +11,17 @@ button_style:
   fg: '#000000'
   activebackground: '#ffffff'
   activeforeground: '#000000'
-game_score_label_style:
-  relief: flat
+game_canvas_style:
   highlightthickness: 0
   bg: '#000000'
-  fg: '#a882d0'
+game_score_style:
+  fill: '#94a1fa'
+game_paddle_rectangle_style:
+  width: 0
+  fill: '#ffffff'
+game_ball_oval_style:
+  width: 0
+  fill: '#ffffff'
 info_menu_frame_style:
   bg: '#000000'
   padx: 30

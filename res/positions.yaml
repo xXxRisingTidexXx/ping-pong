@@ -8,10 +8,9 @@ main_menu_button_position:
   ipadx: 70
   ipady: 8
   fill: x
-game_score_label_position:
-  padx: 30
-  pady: 30
-  anchor: ne
+game_canvas_position:
+  expand: yes
+  fill: both
 info_menu_table_header_label_position:
   padx: 30
   pady: 5
