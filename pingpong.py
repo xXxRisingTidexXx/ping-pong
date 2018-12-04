@@ -1,9 +1,8 @@
 from random import choice
-from time import sleep
+from time import sleep, time, strftime, gmtime
 from tkinter import *
 from tkinter.ttk import Separator
 from yaml import load, dump
-from datetime import datetime
 
 
 class App:
@@ -14,8 +13,8 @@ class App:
 
     def __init__(self):
         App.RESOURCE_MANAGER = ResourceManager()
-        App.WIDGET_MANAGER = WidgetManager(App.RESOURCE_MANAGER)
-        App.CACHE = Cache(App.RESOURCE_MANAGER)
+        App.WIDGET_MANAGER = WidgetManager()
+        App.CACHE = Cache()
         data = App.RESOURCE_MANAGER[App]
         self.tk = App.WIDGET_MANAGER.prepare_tk(data['tk'])
         self.delay = data['delay']
@@ -41,7 +40,7 @@ class ResourceManager:
             App: self.read(App.DATA_PATH),
             MainMenu: self.read(MainMenu.DATA_PATH),
             Game: self.read(Game.DATA_PATH),
-            # Summary: self.read(Summary.DATA_PATH),
+            SummaryMenu: self.read(SummaryMenu.DATA_PATH),
             InfoMenu: self.read(InfoMenu.DATA_PATH),
             HelpMenu: self.read(HelpMenu.DATA_PATH)
         }
@@ -60,11 +59,8 @@ class ResourceManager:
             dump(data, stream, default_flow_style=False)
 
 
+# noinspection PyMethodMayBeStatic
 class WidgetManager:
-    def __init__(self, resource_manager):
-        self.resource_manager = resource_manager
-
-    # noinspection PyMethodMayBeStatic
     def prepare_tk(self, data):
         tk = Tk()
         tk.title(data['title'])
@@ -74,46 +70,47 @@ class WidgetManager:
         tk.configure(background=data['background'])
         return tk
 
-    def prepare_frame(self, master, data):
-        frame = Frame(master, self.resource_manager[ResourceManager.STYLES][data['style']])
-        frame.place(self.resource_manager[ResourceManager.POSITIONS][data['position']])
+    def place_frame(self, master, data):
+        frame = Frame(master, App.RESOURCE_MANAGER[ResourceManager.STYLES][data['style']])
+        frame.place(App.RESOURCE_MANAGER[ResourceManager.POSITIONS][data['position']])
         frame.update()
         return frame
 
-    def prepare_button(self, master, data, command):
-        button = Button(master, self.resource_manager[ResourceManager.STYLES][data['style']])
+    def pack_button(self, master, data, command):
+        button = Button(master, App.RESOURCE_MANAGER[ResourceManager.STYLES][data['style']])
         button.configure(
-            text=data['text'], font=self.resource_manager[ResourceManager.FONTS][data['font']], command=command
+            text=data['text'], font=App.RESOURCE_MANAGER[ResourceManager.FONTS][data['font']], command=command
         )
-        button.pack(self.resource_manager[ResourceManager.POSITIONS][data['position']])
+        button.pack(App.RESOURCE_MANAGER[ResourceManager.POSITIONS][data['position']])
         button.update()
         return button
 
-    # noinspection PyMethodMayBeStatic
-    def prepare_canvas(self, master, data):
+    def pack_canvas(self, master, data):
         canvas = Canvas(master, width=master.winfo_width(), height=master.winfo_height())
-        canvas.configure(self.resource_manager[ResourceManager.STYLES][data['style']])
-        canvas.pack(self.resource_manager[ResourceManager.POSITIONS][data['position']])
+        canvas.configure(App.RESOURCE_MANAGER[ResourceManager.STYLES][data['style']])
+        canvas.pack(App.RESOURCE_MANAGER[ResourceManager.POSITIONS][data['position']])
         canvas.update()
         return canvas
 
-    def prepare_label(self, master, data):
-        label = Label(master, self.resource_manager[ResourceManager.STYLES][data['style']])
-        label.configure(text=data['text'], font=self.resource_manager[ResourceManager.FONTS][data['font']])
-        label.pack(self.resource_manager[ResourceManager.POSITIONS][data['position']])
+    def grid_label(self, master, data):
+        pass
+
+    def pack_label(self, master, data):
+        label = Label(master, App.RESOURCE_MANAGER[ResourceManager.STYLES][data['style']])
+        label.configure(text=data['text'], font=App.RESOURCE_MANAGER[ResourceManager.FONTS][data['font']])
+        label.pack(App.RESOURCE_MANAGER[ResourceManager.POSITIONS][data['position']])
         label.update()
         return label
 
-    def prepare_separator(self, master, data):
+    def pack_separator(self, master, data):
         separator = Separator(master, orient=data['orient'])
-        separator.pack(self.resource_manager[ResourceManager.POSITIONS][data['position']])
+        separator.pack(App.RESOURCE_MANAGER[ResourceManager.POSITIONS][data['position']])
         return separator
 
 
 class Cache:
-    def __init__(self, resource_manager):
-        self.resource_manager = resource_manager
-        self.data = {Table.CONTENT: self.resource_manager.read(Table.CONTENT_PATH)}
+    def __init__(self):
+        self.data = {Table.CONTENT: App.RESOURCE_MANAGER.read(Table.CONTENT_PATH)}
 
     def __getitem__(self, key):
         return self.data[key]
@@ -125,14 +122,20 @@ class Cache:
         self[key] = updater(self[key], value)
 
     def save(self, key, path):
-        self.resource_manager.write(self[key], path)
+        App.RESOURCE_MANAGER.write(self[key], path)
 
 
 class Menu:
-    def __init__(self, tk):
+    def __init__(self, tk, name):
         self.tk = tk
+        self.data = App.RESOURCE_MANAGER[name]
+        self.frame = App.WIDGET_MANAGER.place_frame(self.tk, self.data['frame'])
+
+
+class VisualizableMenu(Menu):
+    def __init__(self, tk, name):
+        super().__init__(tk, name)
         self.hidden = False
-        self.frame = None
         self.frame_place_info = None
 
     def hide(self):
@@ -147,36 +150,27 @@ class Menu:
             self.frame.place(self.frame_place_info)
 
 
-class MainMenu(Menu):
+class MainMenu(VisualizableMenu):
     DATA_PATH = 'res/main_menu.yaml'
 
     def __init__(self, tk):
-        super().__init__(tk)
+        super().__init__(tk, MainMenu)
         self.active = True
-        data = App.RESOURCE_MANAGER[MainMenu]
-        self.frame = App.WIDGET_MANAGER.prepare_frame(self.tk, data['frame'])
-        self.buttons = self.prepare_buttons(data['buttons'])
-        self.last_player = {'name': 'Danya', 'result': 5}  # later we will delete it
+        self.buttons = self.prepare_buttons(self.data['buttons'])
         self.info_menu = None
         self.help_menu = None
 
     def prepare_buttons(self, data):
         return (
-            App.WIDGET_MANAGER.prepare_button(self.frame, data['play_button'], self.__play),
-            App.WIDGET_MANAGER.prepare_button(self.frame, data['info_button'], self.__info),
-            App.WIDGET_MANAGER.prepare_button(self.frame, data['help_button'], self.__help),
-            App.WIDGET_MANAGER.prepare_button(self.frame, data['exit_button'], self.__exit)
+            App.WIDGET_MANAGER.pack_button(self.frame, data['play_button'], self.__play),
+            App.WIDGET_MANAGER.pack_button(self.frame, data['info_button'], self.__info),
+            App.WIDGET_MANAGER.pack_button(self.frame, data['help_button'], self.__help),
+            App.WIDGET_MANAGER.pack_button(self.frame, data['exit_button'], self.__exit)
         )
 
     def __play(self):
         self.hide()
-        Game(self).play()  # later we will extract game statistics from cache, and self.last_player will be deleted
-        App.CACHE.update(Table.CONTENT, self.last_player, self.__appender)
-
-    # noinspection PyMethodMayBeStatic
-    def __appender(self, lst, value):
-        lst.append(value)
-        return lst
+        Game(self).play()
 
     def __info(self):
         self.hide()
@@ -204,43 +198,31 @@ class Game:
         self.main_menu = main_menu
         self.tk = self.main_menu.tk
         data = App.RESOURCE_MANAGER[Game]
-        self.canvas = App.WIDGET_MANAGER.prepare_canvas(self.tk, data['canvas'])
+        self.canvas = App.WIDGET_MANAGER.pack_canvas(self.tk, data['canvas'])
         self.session = Session()
-        self.paddle = self.prepare_paddle(data['paddle'])
-        self.ball = self.prepare_ball(data['ball'])
-        self.score = self.prepare_score(data['score'])
+        self.paddle = Paddle(self.canvas, data['paddle'])
+        self.ball = Ball(self.canvas, data['ball'], self.paddle)
+        self.score = Score(self.canvas, data['score'])
         self.delay = data['delay']
 
-    def prepare_paddle(self, data):
-        paddle = Paddle(self.canvas, data)
-        self.session[Paddle] = {'id': paddle.id}
-        return paddle
-
-    def prepare_ball(self, data):
-        ball = Ball(self.canvas, data, self.session)
-        self.session[Ball] = {'id': ball.id}
-        return ball
-
-    def prepare_score(self, data):
-        score = Score(self.canvas, data)
-        self.session[Score] = {'id': score.id}
-        return score
-
     def play(self):
-        while self.ball.flies():
-            self.ball.move()
-            self.tk.update_idletasks()
-            self.tk.update()
-            sleep(self.delay)
+        # while self.ball.flies():
+        #     self.ball.motion()
+        #     self.tk.update_idletasks()
+        #     self.tk.update()
+        #     sleep(self.delay)
         self.canvas.pack_forget()
-        self.main_menu.visualize()  # delete it later
-        # Summary(self.resource_manager, self.tk, self.main_menu, ...)  put statistics here
+        self.session.finish()
+        # self.main_menu.visualize()
+        SummaryMenu(self.main_menu, self.session)
 
 
 class Session:
+    START = 'start'
+    DURATION = 'duration'
+
     def __init__(self):
-        self.data = {}
-        self.start = datetime.now()
+        self.data = {Session.START: str(time())}
 
     def __getitem__(self, key):
         return self.data[key]
@@ -248,15 +230,17 @@ class Session:
     def __setitem__(self, key, value):
         self.data[key] = value
 
+    def finish(self):
+        self[Session.DURATION] = self.duration()
 
-class Paddle:
-    def __init__(self, canvas, data):
+    def duration(self):
+        return strftime('%H:%M:%S', gmtime(time() - float(self[Session.START])))
+
+
+class Entity:
+    def __init__(self, canvas):
         self.canvas = canvas
-        self.id = self.prepare_rectangle(data['rectangle'])
-        self.dxl = data['dxl']
-        self.dxr = data['dxr']
-        self.canvas.bind_all(data['left_arrow'], self.__move_left)
-        self.canvas.bind_all(data['right_arrow'], self.__move_right)
+        self.id = None
 
     def prepare_rectangle(self, data):
         _id = self.canvas.create_rectangle(
@@ -265,30 +249,6 @@ class Paddle:
         self.canvas.move(_id, data['x0'], data['y0'])
         return _id
 
-    # noinspection PyUnusedLocal
-    def __move_left(self, event):
-        self.canvas.move(self.id, self.dxl if self.hit_left_border() else 0, 0)
-
-    def hit_left_border(self):
-        return self.canvas.coords(self.id)[0] > 0
-
-    # noinspection PyUnusedLocal
-    def __move_right(self, event):
-        self.canvas.move(self.id, self.dxr if self.hit_right_border() else 0, 0)
-
-    def hit_right_border(self):
-        return self.canvas.coords(self.id)[2] < self.canvas.winfo_width()
-
-
-class Ball:
-    def __init__(self, canvas, data, session):
-        self.canvas = canvas
-        self.id = self.prepare_oval(data['oval'])
-        self.paddle_id = session[Paddle]['id']
-        self.dx = choice(data['dx'])
-        self.dy = choice(data['dy'])
-        self.dt = data['dt']
-
     def prepare_oval(self, data):
         _id = self.canvas.create_oval(
             data['x1'], data['y1'], data['x2'], data['y2'], App.RESOURCE_MANAGER[ResourceManager.STYLES][data['style']]
@@ -296,90 +256,137 @@ class Ball:
         self.canvas.move(_id, data['x0'], data['y0'])
         return _id
 
-    def flies(self):
-        return self.canvas.coords(self.id)[1] <= self.canvas.winfo_height()
-
-    def move(self):
-        coords = self.canvas.coords(self.id)
-        self.dx = self.move_x(coords)
-        self.dy = self.move_y(coords)
-        self.canvas.move(self.id, self.dx, self.dy)
-
-    def move_x(self, coords):
-        return 1 if self.hit_left_border(coords) else -1 if self.hit_right_border(coords) else self.dx
-
-    # noinspection PyMethodMayBeStatic
-    def hit_left_border(self, coords):
-        return coords[0] <= 0
-
-    def hit_right_border(self, coords):
-        return coords[2] >= self.canvas.winfo_width()
-
-    def move_y(self, coords):
-        return 1 if self.hit_top_border(coords) else -1 if self.hit_paddle(coords) else self.dy
-
-    # noinspection PyMethodMayBeStatic
-    def hit_top_border(self, coords):
-        return coords[1] <= 0
-
-    def hit_paddle(self, coords):
-        paddle_coords = self.canvas.coords(self.paddle_id)
-        return self.upon_paddle(coords, paddle_coords) and self.touch_paddle(coords, paddle_coords)
-
-    # noinspection PyMethodMayBeStatic
-    def upon_paddle(self, coords, paddle_coords):
-        return coords[2] >= paddle_coords[0] and coords[0] <= paddle_coords[2]
-
-    # noinspection PyMethodMayBeStatic
-    def touch_paddle(self, coords, paddle_coords):
-        return paddle_coords[1] <= coords[3] <= paddle_coords[3]
-
-
-class Score:
-    def __init__(self, canvas, data):
-        self.canvas = canvas
-        self.id = self.prepare_text(data)
-
     def prepare_text(self, data):
         _id = self.canvas.create_text(
-            data['x1'], data['y1'], text=data['text'], font=App.RESOURCE_MANAGER[ResourceManager.FONTS][data['font']]
+            data['x1'], data['y1'], text=data['value'], font=App.RESOURCE_MANAGER[ResourceManager.FONTS][data['font']]
         )
         self.canvas.itemconfigure(_id, App.RESOURCE_MANAGER[ResourceManager.STYLES][data['style']])
         return _id
 
+    def coordinates(self):
+        return self.canvas.coords(self.id)
+
+
+class MovableEntity(Entity):
+    def __init__(self, canvas):
+        super().__init__(canvas)
+
+    def move(self, dx, dy):
+        self.canvas.move(self.id, dx, dy)
+
+
+class Paddle(MovableEntity):
+    def __init__(self, canvas, data):
+        super().__init__(canvas)
+        self.id = self.prepare_rectangle(data['rectangle'])
+        self.dxl = data['dxl']
+        self.dxr = data['dxr']
+        self.canvas.bind_all(data['left_arrow'], self.__move_left)
+        self.canvas.bind_all(data['right_arrow'], self.__move_right)
+
+    # noinspection PyUnusedLocal
+    def __move_left(self, event):
+        self.move(self.dxl if self.hit_left_border() else 0, 0)
+
+    def hit_left_border(self):
+        return self.canvas.coords(self.id)[0] > 0
+
+    # noinspection PyUnusedLocal
+    def __move_right(self, event):
+        self.move(self.dxr if self.hit_right_border() else 0, 0)
+
+    def hit_right_border(self):
+        return self.canvas.coords(self.id)[2] < self.canvas.winfo_width()
+
+
+class Ball(MovableEntity):
+    def __init__(self, canvas, data, paddle):
+        super().__init__(canvas)
+        self.id = self.prepare_oval(data['oval'])
+        self.paddle = paddle
+        self.dx = choice(data['dx'])
+        self.dy = choice(data['dy'])
+        self.dt = data['dt']
+
+    def flies(self):
+        return self.canvas.coords(self.id)[1] <= self.canvas.winfo_height()
+
+    def motion(self):
+        coordinates = self.coordinates()
+        self.dx = self.move_x(coordinates)
+        self.dy = self.move_y(coordinates)
+        self.move(self.dx, self.dy)
+
+    def move_x(self, coordinates):
+        return 1 if self.hit_left_border(coordinates) else -1 if self.hit_right_border(coordinates) else self.dx
+
+    # noinspection PyMethodMayBeStatic
+    def hit_left_border(self, coordinates):
+        return coordinates[0] <= 0
+
+    def hit_right_border(self, coordinates):
+        return coordinates[2] >= self.canvas.winfo_width()
+
+    def move_y(self, coordinates):
+        return 1 if self.hit_top_border(coordinates) else -1 if self.hit_paddle(coordinates) else self.dy
+
+    # noinspection PyMethodMayBeStatic
+    def hit_top_border(self, coordinates):
+        return coordinates[1] <= 0
+
+    def hit_paddle(self, coordinates):
+        paddle_coordinates = self.paddle.coordinates()
+        return self.upon_paddle(coordinates, paddle_coordinates) and self.touch_paddle(coordinates, paddle_coordinates)
+
+    # noinspection PyMethodMayBeStatic
+    def upon_paddle(self, coordinates, paddle_coordinates):
+        return coordinates[2] >= paddle_coordinates[0] and coordinates[0] <= paddle_coordinates[2]
+
+    # noinspection PyMethodMayBeStatic
+    def touch_paddle(self, coordinates, paddle_coordinates):
+        return paddle_coordinates[1] <= coordinates[3] <= paddle_coordinates[3]
+
+
+class Score(Entity):
+    def __init__(self, canvas, data):
+        super().__init__(canvas)
+        self.id = self.prepare_text(data['text'])
+        self.value = data['text']['value']
+
     def increment(self):
-        value = self.canvas.itemcget(self.id, 'text')
-        self.canvas.itemconfigure(self.id, text=str(value + 1))
+        self.value += 1
+        self.canvas.itemconfigure(self.id, text=str(self.value))
 
 
-# class Summary:
-#     DATA_PATH = 'res/summary.yaml'
-#
-#     def __init__(self, resource_manager, tk, main_menu, statistics):
-#         self.resource_manager = resource_manager
-#         self.tk = tk
-#         self.main_menu = main_menu
-#         data = self.resource_manager[Summary]
-#         self.frame = self.main_menu.prepare_frame(...)
-#         pass
-#
-#     def __ok(self):
-#         self.frame.place_forget()
-#         self.main_menu.last_player = (...)
-#         self.main_menu.visualize()
-#         pass
+class SummaryMenu(Menu):
+    DATA_PATH = 'res/summary_menu.yaml'
+
+    def __init__(self, main_menu, session):
+        super().__init__(main_menu.tk, SummaryMenu)
+        self.main_menu = main_menu
+        self.session = session
+        # put table here
+        self.ok_button = App.WIDGET_MANAGER.pack_button(self.frame, self.data['ok_button'], self.__ok)
+
+    def __ok(self):
+        self.frame.place_forget()
+        # transmit session statistics to cache
+        self.main_menu.visualize()
+
+    # noinspection PyMethodMayBeStatic
+    def __appender(self, lst, value):
+        lst.append(value)
+        return lst
 
 
-class InfoMenu(Menu):
+class InfoMenu(VisualizableMenu):
     DATA_PATH = 'res/info_menu.yaml'
 
     def __init__(self, main_menu):
-        super().__init__(main_menu.tk)
+        super().__init__(main_menu.tk, InfoMenu)
         self.main_menu = main_menu
-        data = App.RESOURCE_MANAGER[InfoMenu]
-        self.frame = App.WIDGET_MANAGER.prepare_frame(self.tk, data['frame'])
-        self.table = Table(self, data['table'])
-        self.back_button = App.WIDGET_MANAGER.prepare_button(self.frame, data['back_button'], self.__back)
+        self.table = Table(self, self.data['table'])
+        self.back_button = App.WIDGET_MANAGER.pack_button(self.frame, self.data['back_button'], self.__back)
 
     def __back(self):
         self.hide()
@@ -396,16 +403,16 @@ class Table:
     def __init__(self, info_menu, data):
         self.info_menu = info_menu
         self.rows = data['rows']
-        self.header_label = App.WIDGET_MANAGER.prepare_label(self.info_menu.frame, data['header_label'])
+        self.header_label = App.WIDGET_MANAGER.pack_label(self.info_menu.frame, data['header_label'])
         self.carcass = self.prepare_carcass(data['separator'], data['name_label'], data['result_label'])
         self.update()
 
     # noinspection PyUnusedLocal
     def prepare_carcass(self, separator_data, name_label_data, result_label_data):
         return [{
-            'separator': App.WIDGET_MANAGER.prepare_separator(self.info_menu.frame, separator_data),
-            'name_label': App.WIDGET_MANAGER.prepare_label(self.info_menu.frame, name_label_data),
-            'result_label': App.WIDGET_MANAGER.prepare_label(self.info_menu.frame, result_label_data)
+            'separator': App.WIDGET_MANAGER.pack_separator(self.info_menu.frame, separator_data),
+            'name_label': App.WIDGET_MANAGER.pack_label(self.info_menu.frame, name_label_data),
+            'result_label': App.WIDGET_MANAGER.pack_label(self.info_menu.frame, result_label_data)
         } for i in range(self.rows)]
 
     def update(self):
@@ -422,17 +429,15 @@ class Table:
         return sorted(content, key=lambda r: r['result'], reverse=True)[:self.rows]
 
 
-class HelpMenu(Menu):
+class HelpMenu(VisualizableMenu):
     DATA_PATH = 'res/help_menu.yaml'
 
     def __init__(self, main_menu):
-        super().__init__(main_menu.tk)
+        super().__init__(main_menu.tk, HelpMenu)
         self.main_menu = main_menu
-        data = App.RESOURCE_MANAGER[HelpMenu]
-        self.frame = App.WIDGET_MANAGER.prepare_frame(self.tk, data['frame'])
-        self.header_label = App.WIDGET_MANAGER.prepare_label(self.frame, data['header_label'])
-        self.wrapper_label = App.WIDGET_MANAGER.prepare_label(self.frame, data['wrapper_label'])
-        self.back_button = App.WIDGET_MANAGER.prepare_button(self.frame, data['back_button'], self.__back)
+        self.header_label = App.WIDGET_MANAGER.pack_label(self.frame, self.data['header_label'])
+        self.wrapper_label = App.WIDGET_MANAGER.pack_label(self.frame, self.data['wrapper_label'])
+        self.back_button = App.WIDGET_MANAGER.pack_button(self.frame, self.data['back_button'], self.__back)
 
     def __back(self):
         self.hide()

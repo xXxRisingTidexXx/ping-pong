@@ -11,6 +11,11 @@ main_menu_button_position:
 game_canvas_position:
   expand: yes
   fill: both
+summary_menu_ok_button_position:
+  padx: 20
+  pady: 55
+  ipadx: 130
+  ipady: 10
 info_menu_table_header_label_position:
   padx: 30
   pady: 5
@@ -44,6 +49,6 @@ help_menu_wrapper_label_position:
   ipady: 5
 help_menu_back_button_position:
   padx: 25
-  pady: 5
+  pady: 15
   ipadx: 130
   ipady: 10

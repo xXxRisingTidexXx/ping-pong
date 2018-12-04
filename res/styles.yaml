@@ -14,7 +14,7 @@ button_style:
 game_canvas_style:
   highlightthickness: 0
   bg: '#000000'
-game_score_style:
+game_score_text_style:
   fill: '#94a1fa'
 game_paddle_rectangle_style:
   width: 0
@@ -22,6 +22,10 @@ game_paddle_rectangle_style:
 game_ball_oval_style:
   width: 0
   fill: '#ffffff'
+summary_menu_frame_style:
+  bg: '#000000'
+  padx: 10
+  pady: 20
 info_menu_frame_style:
   bg: '#000000'
   padx: 30

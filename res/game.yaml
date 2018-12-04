@@ -3,11 +3,12 @@ canvas:
   style: game_canvas_style
   position: game_canvas_position
 score:
-  x1: 50
-  y1: 70
-  text: 0
-  font: game_score_font
-  style: game_score_style
+  text:
+    x1: 50
+    y1: 70
+    value: 0
+    font: game_score_text_font
+    style: game_score_text_style
 paddle:
   rectangle:
     x1: 0

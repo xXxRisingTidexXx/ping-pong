@@ -1,5 +1,5 @@
 button_font: Times 18 bold
-game_score_font: Times 50 bold
+game_score_text_font: Times 50 bold
 header_label_font: Courier 22 bold
 info_menu_table_name_label_font: Helvetica 14 bold
 info_menu_table_result_label_font: Helvetica 14 normal

@@ -1,0 +1,8 @@
+frame:
+  style: summary_menu_frame_style
+  position: frame_position
+ok_button:
+  text: OK
+  font: button_font
+  style: button_style
+  position: summary_menu_ok_button_position
