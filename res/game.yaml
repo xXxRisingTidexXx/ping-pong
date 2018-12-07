@@ -2,13 +2,15 @@ delay: 0.01
 canvas:
   style: game_canvas_style
   position: game_canvas_position
-score:
-  text:
-    x1: 50
-    y1: 70
-    value: 0
-    font: game_score_text_font
-    style: game_score_text_style
+decoration:
+  line:
+    x1: 0
+    y1: 0
+    x2: 0
+    y2: 400
+    style: game_decoration_line_style
+    x0: 300
+    y0: 300
 paddle:
   rectangle:
     x1: 0
@@ -18,8 +20,7 @@ paddle:
     style: game_paddle_rectangle_style
     x0: 650
     y0: 600
-  dxl: -5
-  dxr: 5
+  vx: -5.5
   left_arrow: <Key-Left>
   right_arrow: <Key-Right>
 ball:
@@ -31,12 +32,19 @@ ball:
     style: game_ball_oval_style
     x0: 455
     y0: 170
-  dx:
-    - -3
+  vx_range:
     - -2
-    - 2
-    - 3
-  dy:
-    - -3
+    - -1
+  vx_random: 0.1
+  vy_range:
     - -2
+    - -1
+  g: 1.2
   dt: 0.01
+score:
+  text:
+    x1: 50
+    y1: 70
+    value: 0
+    font: game_score_text_font
+    style: game_score_text_style

@@ -14,14 +14,17 @@ button_style:
 game_canvas_style:
   highlightthickness: 0
   bg: '#000000'
-game_score_text_style:
-  fill: '#94a1fa'
+game_decoration_line_style:
+  width: 1
+  fill: '#9967ce'
 game_paddle_rectangle_style:
   width: 0
   fill: '#ffffff'
 game_ball_oval_style:
   width: 0
   fill: '#ffffff'
+game_score_text_style:
+  fill: '#94a1fa'
 summary_menu_frame_style:
   bg: '#000000'
   padx: 10

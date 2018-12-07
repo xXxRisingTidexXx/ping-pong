@@ -1,7 +1,7 @@
 from globals import RM, Screen
-from random import choice
+from random import choice, uniform
 from time import sleep, time, strftime, gmtime
-from factory import pack_canvas, generate_rectangle, generate_oval, generate_text
+from factory import pack_canvas, create_rectangle, create_oval, create_text, create_line
 
 
 class Game(Screen):
@@ -42,62 +42,83 @@ class MovableEntity(Entity):
         self.canvas.move(self.id, dx, dy)
 
 
+class Decoration(MovableEntity):
+    def __init__(self, canvas, data):
+        super().__init__(canvas)
+        self.id = create_line(self.canvas, data['line'])
+
+
 class Paddle(MovableEntity):
     def __init__(self, canvas, data):
         super().__init__(canvas)
-        self.id = generate_rectangle(self.canvas, data['rectangle'])
-        self.dxl = data['dxl']
-        self.dxr = data['dxr']
+        self.id = create_rectangle(self.canvas, data['rectangle'])
+        self.vxl = data['vx']
+        self.vxr = -self.vxl
         self.canvas.bind_all(data['left_arrow'], self.__move_left)
         self.canvas.bind_all(data['right_arrow'], self.__move_right)
 
     # noinspection PyUnusedLocal
     def __move_left(self, event):
-        self.move(self.dxl if self.hit_left_border() else 0, 0)
+        self.move(self.vxl if self.hit_left_border() else 0, 0)
 
     def hit_left_border(self):
         return self.canvas.coords(self.id)[0] > 0
 
     # noinspection PyUnusedLocal
     def __move_right(self, event):
-        self.move(self.dxr if self.hit_right_border() else 0, 0)
+        self.move(self.vxr if self.hit_right_border() else 0, 0)
 
     def hit_right_border(self):
         return self.canvas.coords(self.id)[2] < self.canvas.winfo_width()
 
 
+# noinspection PyMethodMayBeStatic
 class Ball(MovableEntity):
     def __init__(self, canvas, data, paddle):
         super().__init__(canvas)
-        self.id = generate_oval(self.canvas, data['oval'])
+        self.id = create_oval(self.canvas, data['oval'])
         self.paddle = paddle
-        self.dx = choice(data['dx'])
-        self.dy = choice(data['dy'])
-        self.dt = data['dt']
+        self.vx = self.calc_vx0(data['vx_range'])
+        self.vx_random = data['vx_random']
+        self.vy = self.calc_vy0(data['vy_range'])
+        self.dvy = data['g'] * data['dt']
+
+    def calc_vx0(self, data):
+        return choice([uniform(data[0], data[1]), uniform(-data[1], -data[0])])
+
+    def calc_vy0(self, data):
+        return uniform(data[0], data[1])
 
     def flies(self):
         return self.canvas.coords(self.id)[1] <= self.canvas.winfo_height()
 
     def motion(self):
         coordinates = self.coordinates()
-        self.dx = self.move_x(coordinates)
-        self.dy = self.move_y(coordinates)
-        self.move(self.dx, self.dy)
+        self.vx = self.calc_vx(coordinates)
+        self.vy = self.calc_vy(coordinates)
+        self.move(self.vx, self.vy)
 
-    def move_x(self, coordinates):
-        return 1 if self.hit_left_border(coordinates) else -1 if self.hit_right_border(coordinates) else self.dx
+    def calc_vx(self, coordinates):
+        return -self.vx * self.calc_vx_random() if self.hit_vertical_borders(coordinates) else self.vx
 
-    # noinspection PyMethodMayBeStatic
+    def calc_vx_random(self):
+        return 1 + uniform(-self.vx_random, self.vx_random)
+
+    def hit_vertical_borders(self, coordinates):
+        return self.hit_left_border(coordinates) or self.hit_right_border(coordinates)
+
     def hit_left_border(self, coordinates):
         return coordinates[0] <= 0
 
     def hit_right_border(self, coordinates):
         return coordinates[2] >= self.canvas.winfo_width()
 
-    def move_y(self, coordinates):
-        return 1 if self.hit_top_border(coordinates) else -1 if self.hit_paddle(coordinates) else self.dy
+    def calc_vy(self, coordinates):
+        return (-self.vy if self.hit_horizontal_borders(coordinates) else self.vy) + self.dvy
 
-    # noinspection PyMethodMayBeStatic
+    def hit_horizontal_borders(self, coordinates):
+        return self.hit_top_border(coordinates) or self.hit_paddle(coordinates)
+
     def hit_top_border(self, coordinates):
         return coordinates[1] <= 0
 
@@ -105,11 +126,9 @@ class Ball(MovableEntity):
         paddle_coordinates = self.paddle.coordinates()
         return self.upon_paddle(coordinates, paddle_coordinates) and self.touch_paddle(coordinates, paddle_coordinates)
 
-    # noinspection PyMethodMayBeStatic
     def upon_paddle(self, coordinates, paddle_coordinates):
         return coordinates[2] >= paddle_coordinates[0] and coordinates[0] <= paddle_coordinates[2]
 
-    # noinspection PyMethodMayBeStatic
     def touch_paddle(self, coordinates, paddle_coordinates):
         return paddle_coordinates[1] <= coordinates[3] <= paddle_coordinates[3]
 
@@ -117,7 +136,7 @@ class Ball(MovableEntity):
 class Score(Entity):
     def __init__(self, canvas, data):
         super().__init__(canvas)
-        self.id = generate_text(self.canvas, data['text'])
+        self.id = create_text(self.canvas, data['text'])
         self.value = data['text']['value']
 
     def increment(self):
