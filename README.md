@@ -2,10 +2,18 @@
 It's a classic 2D game, where you're to hit the ball using paddle.
 Use left and right arrows to move your tool. Score, compete and survive!
 
+# v0.0.3
+- All menus have been finally implemented;
+- Alpha version of Game class has been implemented;
+- Cache class has been added;
+- WidgetManager class has been deleted;
+- All program has been divided into separate modules according to their specializations.
+
+
 # v0.0.2
 - Main menu has been fully implemented;
 - Info menu has been implemented;
-- ResourceManager (ResourceManager) and WidgetManager (WidgetManager) classes has been added;
+- RM (ResourceManager) and WM (WidgetManager) classes has been added;
 - Game class has been partially implemented.
 
 Now PingPong seems to look like a very simple game. It has chained game loop and more or less stable menus. Soon I'll

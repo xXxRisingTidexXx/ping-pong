@@ -1,6 +1,44 @@
 frame:
   style: summary_menu_frame_style
   position: frame_position
+statistics:
+  header_label:
+    text: SUMMARY
+    font: header_label_font
+    style: header_label_style
+    position: summary_menu_header_label_position
+  duration:
+    key_label:
+      text: Duration
+      font: summary_menu_key_font
+      style: summary_menu_key_label_style
+      position: summary_menu_duration_key_label_position
+    value_label:
+      text: ''
+      font: summary_menu_value_font
+      style: summary_menu_value_label_style
+      position: summary_menu_duration_value_label_position
+  score:
+    key_label:
+      text: Score
+      font: summary_menu_key_font
+      style: summary_menu_key_label_style
+      position: summary_menu_score_key_label_position
+    value_label:
+      text: ''
+      font: summary_menu_value_font
+      style: summary_menu_value_label_style
+      position: summary_menu_score_value_label_position
+  name:
+    key_label:
+      text: Name
+      font: summary_menu_key_font
+      style: summary_menu_key_label_style
+      position: summary_menu_name_label_position
+    entry:
+      font: summary_menu_value_font
+      style: summary_menu_name_entry_style
+      position:  summary_menu_name_entry_position
 ok_button:
   text: OK
   font: button_font

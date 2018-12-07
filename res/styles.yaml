@@ -25,16 +25,34 @@ game_ball_oval_style:
 summary_menu_frame_style:
   bg: '#000000'
   padx: 10
-  pady: 20
-info_menu_frame_style:
-  bg: '#000000'
-  padx: 30
-  pady: 20
-info_menu_table_header_label_style:
+  pady: 10
+header_label_style:
   relief: flat
   highlightthickness: 0
   bg: '#000000'
   fg: '#bca3d6'
+summary_menu_key_label_style:
+  relief: flat
+  highlightthickness: 0
+  bg: '#000000'
+  fg: '#9967ce'
+summary_menu_value_label_style:
+  relief: flat
+  highlightthickness: 0
+  bg: '#000000'
+  fg: '#ffffff'
+summary_menu_name_entry_style:
+  justify: right
+  exportselection: 0
+  relief: flat
+  bd: 0
+  bg: '#000000'
+  fg: '#ffffff'
+  insertbackground: '#ffffff'
+info_menu_frame_style:
+  bg: '#000000'
+  padx: 30
+  pady: 20
 info_menu_table_name_label_style:
   relief: flat
   highlightthickness: 0
@@ -49,11 +67,6 @@ help_menu_frame_style:
   bg: '#000000'
   padx: 10
   pady: 30
-help_menu_header_label_style:
-  relief: flat
-  highlightthickness: 0
-  bg: '#000000'
-  fg: '#bca3d6'
 help_menu_wrapper_label_style:
   relief: flat
   highlightthickness: 0

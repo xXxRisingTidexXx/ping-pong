@@ -6,7 +6,7 @@ table:
   header_label:
     text: INFO
     font: header_label_font
-    style: info_menu_table_header_label_style
+    style: header_label_style
     position: info_menu_table_header_label_position
   name_label:
     text: ''
