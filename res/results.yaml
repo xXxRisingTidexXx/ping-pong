@@ -1,3 +1,5 @@
+- name: Danya
+  result: 8
 - name: sdgsdgsdgsdh
   result: 7
 - name: xx
@@ -5,6 +7,4 @@
 - name: xx
   result: 5
 - name: xx
-  result: 5
-- name: Danya
   result: 5

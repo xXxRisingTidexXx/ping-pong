@@ -92,3 +92,12 @@ score:
     value: 0
     font: game_score_text_font
     style: game_score_text_style
+target:
+  rectangle:
+    x1: 0
+    y1: 0
+    x2: 30
+    y2: 30
+    style: game_target_rectangle_style
+    x0: 0
+    y0: 0

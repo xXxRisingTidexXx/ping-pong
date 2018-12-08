@@ -1,5 +1,5 @@
 # noinspection PyUnresolvedReferences
-from math import cos, sin, pi
+from math import cos, sin, pi, sqrt
 from globals import RM, Screen
 from random import choice, uniform
 from time import sleep, time, strftime, gmtime
@@ -14,6 +14,8 @@ class Game(Screen):
         self.paddle = Paddle(self.canvas, self.data['paddle'])
         self.ball = Ball(self.canvas, self.data['ball'], self.paddle)
         self.score = Score(self.canvas, self.data['score'])
+        self.target_generator = TargetGenerator(self.canvas, self.data['target'])
+        self.target_collector = TargetCollector(self.canvas)
         self.session = Session()
         self.delay = self.data['delay']
 
@@ -27,11 +29,24 @@ class Game(Screen):
 
     def mainloop(self):
         while self.ball.flies():
+            self.generate_targets()
             self.ball.motion()
+            self.check_targets()
             self.motion_decorations()
             self.tk.update_idletasks()
             self.tk.update()
             sleep(self.delay)
+
+    def generate_targets(self):
+        self.target_collector.extend(self.target_generator.try_generate())
+
+    def check_targets(self):
+        targets = self.ball.find_targets()
+        count = len(targets)
+        if count > 0:
+            self.score.increase(count)
+            self.session[Session.SCORE] = self.score.value
+            self.target_collector.remove(targets)
 
     def motion_decorations(self):
         for d in self.decorations:
@@ -102,10 +117,14 @@ class Ball(MovableEntity):
         super().__init__(canvas)
         self.id = create_oval(self.canvas, data['oval'])
         self.paddle = paddle
+        self.r = self.calc_r(data['oval'])
         self.vx = self.calc_vx0(data['vx_range'])
         self.vx_random = data['vx_random']
         self.vy = self.calc_vy0(data['vy_range'])
         self.dvy = data['g'] * data['dt']
+
+    def calc_r(self, data):
+        return abs(data['x1'] - data['x2']) / 2
 
     def calc_vx0(self, data):
         return choice([uniform(data[0], data[1]), uniform(-data[1], -data[0])])
@@ -156,6 +175,19 @@ class Ball(MovableEntity):
     def touch_paddle(self, coordinates, paddle_coordinates):
         return paddle_coordinates[1] <= coordinates[3] <= paddle_coordinates[3]
 
+    def find_targets(self):
+        return tuple(filter(lambda t: 'target' in self.canvas.gettags(t), self.find_overlapping()))
+
+    def find_overlapping(self):
+        coordinates = self.coordinates()
+        shift = self.calc_shift()
+        return self.canvas.find_overlapping(
+            coordinates[0] + shift, coordinates[1] + shift, coordinates[2] - shift, coordinates[3] - shift
+        )
+
+    def calc_shift(self):
+        return self.r * (1 - sqrt(0.5))
+
 
 class Score(Entity):
     def __init__(self, canvas, data):
@@ -163,9 +195,52 @@ class Score(Entity):
         self.id = create_text(self.canvas, data['text'])
         self.value = data['text']['value']
 
-    def increment(self):
-        self.value += 1
+    def increase(self, increasing):
+        self.value += increasing
         self.canvas.itemconfigure(self.id, text=str(self.value))
+
+
+class TargetGenerator:
+    def __init__(self, canvas, target_data):
+        self.canvas = canvas
+        self.target_data = target_data
+        self.start = time()
+
+    # I'm too lazy to change it :) Later we will modify it)
+    def try_generate(self):
+        now = time()
+        targets = []
+        if now - self.start >= 10:
+            self.start = now
+            targets.append(Target(self.canvas, self.target_data, uniform(50, 1300), uniform(50, 500)))
+        return targets
+
+
+class Target(Entity):
+    def __init__(self, canvas, data, x, y):
+        super().__init__(canvas)
+        self.id = self.prepare_rectangle(data['rectangle'], x, y)
+
+    def prepare_rectangle(self, data, x, y):
+        _id = create_rectangle(self.canvas, data)
+        self.canvas.move(_id, x, y)
+        self.canvas.itemconfigure(_id, tag='target')
+        return _id
+
+
+class TargetCollector:
+    def __init__(self, canvas):
+        self.canvas = canvas
+        self.targets = []
+
+    def extend(self, targets):
+        if len(targets) > 0:
+            self.targets.extend(targets)
+
+    def remove(self, targets):
+        self.targets = list(filter(lambda i: i not in targets, self.targets))
+        for t in targets:
+            self.canvas.delete(t)
 
 
 class Session:

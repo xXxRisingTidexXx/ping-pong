@@ -25,6 +25,9 @@ game_ball_oval_style:
   fill: '#c7dbf4'
 game_score_text_style:
   fill: '#94a1fa'
+game_target_rectangle_style:
+  width: 0
+  fill: '#a17bc6'
 summary_menu_frame_style:
   bg: '#000000'
   padx: 10
