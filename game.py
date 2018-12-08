@@ -1,3 +1,5 @@
+# noinspection PyUnresolvedReferences
+from math import cos, sin, pi
 from globals import RM, Screen
 from random import choice, uniform
 from time import sleep, time, strftime, gmtime
@@ -8,21 +10,36 @@ class Game(Screen):
     def __init__(self, main_menu):
         super().__init__(main_menu.tk, RM.GAME)
         self.canvas = pack_canvas(self.tk, self.data['canvas'])
+        self.decorations = self.prepare_decorations(self.data['decorations'])
         self.paddle = Paddle(self.canvas, self.data['paddle'])
         self.ball = Ball(self.canvas, self.data['ball'], self.paddle)
         self.score = Score(self.canvas, self.data['score'])
         self.session = Session()
         self.delay = self.data['delay']
 
+    def prepare_decorations(self, data):
+        return [Decoration(self.canvas, d) for d in data]
+
     def play(self):
+        self.mainloop()
+        self.finish()
+        return self.session
+
+    def mainloop(self):
         while self.ball.flies():
             self.ball.motion()
+            self.motion_decorations()
             self.tk.update_idletasks()
             self.tk.update()
             sleep(self.delay)
+
+    def motion_decorations(self):
+        for d in self.decorations:
+            d.motion()
+
+    def finish(self):
         self.canvas.pack_forget()
         self.session.finish()
-        return self.session
 
 
 class Entity:
@@ -46,8 +63,17 @@ class Decoration(MovableEntity):
     def __init__(self, canvas, data):
         super().__init__(canvas)
         self.id = create_line(self.canvas, data['line'])
+        self.vx0 = data['vx0']
+        self.xmover = eval(data['xmover'])
+        self.vy0 = data['vy0']
+        self.ymover = eval(data['ymover'])
+        self.w = data['w']
+
+    def motion(self):
+        self.move(self.xmover(self.vx0, self.w), self.ymover(self.vy0, self.w))
 
 
+# noinspection PyUnusedLocal
 class Paddle(MovableEntity):
     def __init__(self, canvas, data):
         super().__init__(canvas)
@@ -57,14 +83,12 @@ class Paddle(MovableEntity):
         self.canvas.bind_all(data['left_arrow'], self.__move_left)
         self.canvas.bind_all(data['right_arrow'], self.__move_right)
 
-    # noinspection PyUnusedLocal
     def __move_left(self, event):
         self.move(self.vxl if self.hit_left_border() else 0, 0)
 
     def hit_left_border(self):
         return self.canvas.coords(self.id)[0] > 0
 
-    # noinspection PyUnusedLocal
     def __move_right(self, event):
         self.move(self.vxr if self.hit_right_border() else 0, 0)
 

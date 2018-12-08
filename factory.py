@@ -83,22 +83,24 @@ def grid_entry(master, data):
 
 
 def create_line(canvas, data):
-    return create(canvas, data, canvas.create_line)
-
-
-def create(canvas, data, creator):
-    _id = creator(data['x1'], data['y1'], data['x2'], data['y2'], RM[RM.STYLES][data['style']])
+    _id = canvas.create_line(data['x1'], data['y1'], data['x2'], data['y2'], RM[RM.STYLES][data['style']])
     canvas.move(_id, data['x0'], data['y0'])
     return _id
 
 
 def create_rectangle(canvas, data):
-    return create(canvas, data, canvas.create_rectangle)
+    _id = canvas.create_rectangle(data['x1'], data['y1'], data['x2'], data['y2'], RM[RM.STYLES][data['style']])
+    canvas.move(_id, data['x0'], data['y0'])
+    return _id
 
 
 def create_oval(canvas, data):
-    return create(canvas, data, canvas.create_oval)
+    _id = canvas.create_oval(data['x1'], data['y1'], data['x2'], data['y2'], RM[RM.STYLES][data['style']])
+    canvas.move(_id, data['x0'], data['y0'])
+    return _id
 
 
 def create_text(canvas, data):
-    return create(canvas, data, canvas.create_text)
+    _id = canvas.create_text(data['x1'], data['y1'], text=data['value'], font=RM[RM.FONTS][data['font']])
+    canvas.itemconfigure(_id, RM[RM.STYLES][data['style']])
+    return _id

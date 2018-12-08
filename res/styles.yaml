@@ -19,10 +19,10 @@ game_decoration_line_style:
   fill: '#9967ce'
 game_paddle_rectangle_style:
   width: 0
-  fill: '#ffffff'
+  fill: '#e8e3d9'
 game_ball_oval_style:
   width: 0
-  fill: '#ffffff'
+  fill: '#c7dbf4'
 game_score_text_style:
   fill: '#94a1fa'
 summary_menu_frame_style:
