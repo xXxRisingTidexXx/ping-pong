@@ -1,6 +1,5 @@
 # PingPong
-It's a classic 2D game, where you're to hit the ball using paddle.
-Use left and right arrows to move your tool.
+It's a classic 2D game, where you're to hit the ball using paddle. Use left and right arrows to move your tool.
  
 This app's worth your attention because of:
 - Simple user-friendly design
@@ -33,13 +32,12 @@ $ python app.py
 ```
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first 
-to discuss what you would like to change.
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Authors and acknowledgement
-Danylo Petrakivskyi, a fresher from KNU, Kyiv
-Mykola Morgunenko, a fresher from UCU, Lviv
-Alexei Bychkov, a professor from KNU, Kyiv
+- Danylo Petrakivskyi, a fresher from KNU, Kyiv
+- Mykola Morgunenko, a fresher from UCU, Lviv
+- Alexei Bychkov, a professor from KNU, Kyiv
 
 ## Licence
 [MIT](https://choosealicense.com/licenses/mit/)
