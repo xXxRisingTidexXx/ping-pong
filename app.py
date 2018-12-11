@@ -1,3 +1,4 @@
+#!/bin/env python3
 from globals import RM
 from factory import prepare_tk
 from menus import MainMenu

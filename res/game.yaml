@@ -64,7 +64,7 @@ paddle:
     style: game_paddle_rectangle_style
     x0: 650
     y0: 600
-  vx: -5.5
+  vx: -6.5
   left_arrow: <Key-Left>
   right_arrow: <Key-Right>
 ball:
@@ -75,14 +75,14 @@ ball:
     y2: 20
     style: game_ball_oval_style
     x0: 455
-    y0: 170
+    y0: 300
   vx_range:
     - -2
     - -1
   vx_random: 0.1
   vy_range:
     - -3
-    - -1.5
+    - -2
   g: 1.2
   dt: 0.01
 score:
