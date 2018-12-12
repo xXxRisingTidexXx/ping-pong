@@ -1,3 +1,5 @@
+from cocos.layer import Layer
+from cocos.scene import Scene
 # from globals import CACHE, Screen
 # from factory import *
 # from game import Game, Session
@@ -169,3 +171,39 @@
 #     def __back(self):
 #         self.hide()
 #         self.main_menu.visualize()
+
+
+class Menu(Scene):
+    def __init__(self, *children):
+        super().__init__(*children)
+
+
+class VisualizableMenu(Menu):
+    def __init__(self, *children):
+        super().__init__(*children)
+
+    def hide(self):
+        pass
+
+    def visualize(self):
+        pass
+
+
+class MainMenu(VisualizableMenu):
+    def __init__(self, *children):
+        super().__init__(*children)
+
+
+class SummaryMenu(Menu):
+    def __init__(self, *children):
+        super().__init__(*children)
+
+
+class InfoMenu(VisualizableMenu):
+    def __init__(self, *children):
+        super().__init__(*children)
+
+
+class HelpMenu(VisualizableMenu):
+    def __init__(self, *children):
+        super().__init__(*children)

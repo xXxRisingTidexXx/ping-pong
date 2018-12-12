@@ -1,13 +1,17 @@
 #!/bin/env python3
 from cocos.director import director
+from menus import MainMenu
+from singletons import *
 
 
-class App(director):
+class App:
     def __init__(self):
-        pass
+        self.vendor = Vendor()
+        self.main_menu = MainMenu()
 
     def start(self):
-        pass
+        director.init(resizable=False)
+        director.run(self.main_menu)
 
 
 if __name__ == '__main__':
