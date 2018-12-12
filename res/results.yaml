@@ -8,5 +8,11 @@
   result: 5
 - name: xx
   result: 5
-- name: Danya
+- name: zzx
+  result: 22
+- name: z
+  result: 0
+- name: z
   result: 1
+- name: z
+  result: 8
