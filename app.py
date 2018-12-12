@@ -1,22 +1,13 @@
 #!/bin/env python3
-from globals import RM
-from factory import prepare_tk
-from menus import MainMenu
-from time import sleep
+from cocos.director import director
 
 
-class App:
+class App(director):
     def __init__(self):
-        data = RM[RM.APP]
-        self.tk = prepare_tk(data['tk'])
-        self.delay = data['delay']
-        self.main_menu = MainMenu(self.tk)
+        pass
 
     def start(self):
-        while self.main_menu.active:
-            self.tk.update_idletasks()
-            self.tk.update()
-            sleep(self.delay)
+        pass
 
 
 if __name__ == '__main__':
