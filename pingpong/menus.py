@@ -136,7 +136,6 @@ class Table:
         self.carcass = self.prepare_carcass(data['separator'], data['name_label'], data['result_label'])
         self.update()
 
-    # noinspection PyUnusedLocal
     def prepare_carcass(self, separator_data, name_label_data, result_label_data):
         return [{
             'separator': pack_separator(self.master, separator_data),

@@ -1,7 +1,6 @@
 from yaml import load, dump
 
 
-# noinspection PyMethodMayBeStatic
 class Rm:
     FONTS = 'fonts'
     STYLES = 'styles'

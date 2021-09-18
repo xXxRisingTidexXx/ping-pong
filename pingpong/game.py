@@ -1,4 +1,3 @@
-# noinspection PyUnresolvedReferences
 from math import cos, sin, pi, sqrt
 from globals import RM, Screen
 from random import choice, uniform
