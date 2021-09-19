@@ -22,9 +22,11 @@ def make_menu(tk: Tk):
             bg=Color.accent,
             fg=Color.button_text,
             activebackground=Color.hover,
-            activeforeground=Color.button_text
+            activeforeground=Color.button_text,
+            text=text,
+            font=Font.button,
+            command=command
         )
-        button.configure(text=text, font=Font.button, command=command)
         button.pack_configure(padx=25, pady=18, ipadx=70, ipady=8, fill='x')
 
 
@@ -38,31 +40,27 @@ def _go_to_scene(scene: Callable[[Tk], None], tk: Tk, frame: Frame) -> Callable[
 def make_help(tk: Tk):
     frame = Frame(tk, bg=Color.background, padx=10, pady=30)
     frame.place_configure(relx=0.5, rely=0.5, anchor='center')
-    label = Label(
-        frame,
-        relief='flat',
-        highlightthickness=0,
-        bg=Color.background,
-        fg=Color.label_text,
-        text='ping-pong',
-        font=Font.header
-    )
-    label.pack_configure(padx=30, pady=5, ipadx=30, ipady=5)
-    label = Label(
-        frame,
-        relief='flat',
-        highlightthickness=0,
-        bg=Color.background,
-        fg=Color.label_text,
-        text=(
+    contents = [
+        ('ping-pong', Font.header),
+        (
             'It\'s a classic ping-pong game, where you\'re to hit the ball\n'
             'using the paddle. The more ball doesn\'t hit the floor, the\n'
             'more points you score. Use left and right arrows to move the\n'
-            'paddle. Hit special targets to score extra points.'
-        ),
-        font=Font.description
-    )
-    label.pack_configure(padx=30, pady=5, ipadx=30, ipady=5)
+            'paddle. Hit special targets to score extra points.',
+            Font.paragraph
+        )
+    ]
+    for text, font in contents:
+        label = Label(
+            frame,
+            relief='flat',
+            highlightthickness=0,
+            bg=Color.background,
+            fg=Color.label_text,
+            text=text,
+            font=font
+        )
+        label.pack_configure(padx=30, pady=10, ipadx=30, ipady=5)
     button = Button(
         frame,
         relief='flat',
@@ -75,4 +73,4 @@ def make_help(tk: Tk):
         font=Font.button,
         command=_go_to_scene(make_menu, tk, frame)
     )
-    button.pack_configure(padx=25, pady=15, ipadx=130, ipady=10)
+    button.pack_configure(padx=25, pady=20, ipadx=130, ipady=10)

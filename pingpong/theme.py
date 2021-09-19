@@ -9,4 +9,4 @@ class Color:
 class Font:
     button = ('Consolas', 18, 'bold')
     header = ('Consolas', 22, 'bold')
-    description = ('Consolas', 14, 'normal')
+    paragraph = ('Consolas', 14, 'normal')
