@@ -1,11 +1,12 @@
 class Color:
     background = '#000000'
     accent = '#c868db'
-    text = '#000000'
     hover = '#ffffff'
+    button_text = '#000000'
+    label_text = '#bca3d6'
 
 
 class Font:
-    button = 'Times 18 bold'
-    header = 'Courier 22 bold'
-    description = 'Verdana 14 normal'
+    button = ('Consolas', 18, 'bold')
+    header = ('Consolas', 22, 'bold')
+    description = ('Consolas', 14, 'normal')
