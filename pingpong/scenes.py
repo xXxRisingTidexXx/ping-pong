@@ -13,7 +13,11 @@ def make_menu(tk: Tk):
         pady=10
     )
     frame.place_configure(relx=0.5, rely=0.5, anchor='center')
-    options = [('Help', _go_to_scene(make_help, tk, frame)), ('Quit', tk.quit)]
+    options = [
+        ('Play', (lambda: None)),
+        ('Help', _go_to_scene(make_help, tk, frame)),
+        ('Quit', tk.quit)
+    ]
     for text, command in options:
         button = Button(
             frame,
