@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Button, Label
+from tkinter import Tk, Frame, Button, Label, Canvas, Event, Widget
 from typing import Callable
 
 
@@ -7,7 +7,7 @@ def main():
     tk.wm_title('ping-pong')
     tk.wm_geometry(f'{tk.winfo_screenwidth()}x{tk.winfo_screenheight()}')
     tk.wm_resizable(0, 0)
-    tk.wm_attributes('-topmost', 1, '-type', 'splash')
+    # tk.wm_attributes('-topmost', 1, '-type', 'splash')
     tk.configure(background=Color.background)
     make_menu(tk)
     tk.mainloop()
@@ -38,7 +38,7 @@ def make_menu(tk: Tk):
     )
     frame.place_configure(relx=0.5, rely=0.5, anchor='center')
     options = [
-        ('Play', (lambda: None)),
+        ('Play', _go_to_scene(make_game, tk, frame)),
         ('Help', _go_to_scene(make_help, tk, frame)),
         ('Quit', tk.quit)
     ]
@@ -58,10 +58,45 @@ def make_menu(tk: Tk):
         button.pack_configure(padx=25, pady=18, ipadx=70, ipady=8, fill='x')
 
 
-def _go_to_scene(scene: Callable[[Tk], None], tk: Tk, frame: Frame) -> Callable[[], None]:
+def make_game(tk: Tk):
+    canvas = Canvas(
+        tk,
+        width=tk.winfo_width(),
+        height=tk.winfo_height(),
+        highlightthickness=0,
+        bg=Color.background
+    )
+    canvas.pack_configure(expand=True, fill='both')
+    paddle_width = 150
+    paddle_id = canvas.create_rectangle(0, 0, paddle_width, 10, width=0, fill='#e8e3d9')
+    canvas.move(paddle_id, (tk.winfo_width() - paddle_width) // 2, tk.winfo_height() - 300)
+    paddle_vx = 6.5
+    canvas.bind_all('<Key-Left>', _move_paddle_left(canvas, paddle_id, -paddle_vx))
+    canvas.bind_all('<Key-Right>', _move_paddle_right(canvas, paddle_id, paddle_vx))
+
+
+Handler = Callable[[Event], None]
+
+
+def _move_paddle_left(canvas: Canvas, id_: int, vx: float) -> Handler:
+    def move(_: Event):
+        if canvas.coords(id_)[0] > 0:
+            canvas.move(id_, vx, 0)
+    return move
+
+
+def _move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
+    def move(_: Event):
+        dx = canvas.winfo_width() - canvas.coords(id_)[2]
+        if dx > 0:
+            canvas.move(id_, vx if dx > vx else dx, 0)
+    return move
+
+
+def _go_to_scene(scene: Callable[[Tk], None], tk: Tk, widget: Widget) -> Callable[[], None]:
     def go_to():
         scene(tk)
-        frame.destroy()
+        widget.destroy()
     return go_to
 
 
