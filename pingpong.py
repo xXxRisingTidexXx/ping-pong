@@ -2,6 +2,17 @@ from tkinter import Tk, Frame, Button, Label, Canvas, Event, Widget
 from typing import Callable
 from random import choice, uniform
 
+BACKGROUND_COLOR = '#000000'
+ACCENT_COLOR = '#c868db'
+HOVER_COLOR = '#ffffff'
+BUTTON_TEXT_COLOR = '#000000'
+LABEL_TEXT_COLOR = '#bca3d6'
+SPRITE_COLOR = '#e8e3d9'
+
+BUTTON_FONT = ('Consolas', 18, 'bold')
+HEADER_FONT = ('Consolas', 22, 'bold')
+PARAGRAPH_FONT = ('Consolas', 14, 'normal')
+
 
 def main():
     tk = Tk()
@@ -9,33 +20,17 @@ def main():
     tk.wm_geometry(f'{tk.winfo_screenwidth()}x{tk.winfo_screenheight()}')
     tk.wm_resizable(0, 0)
     # tk.wm_attributes('-topmost', 1, '-type', 'splash')
-    tk.configure(background=Color.background)
+    tk.configure(background=BACKGROUND_COLOR)
     make_menu(tk)
     tk.mainloop()
-
-
-class Color:
-    background = '#000000'
-    accent = '#c868db'
-    hover = '#ffffff'
-    button_text = '#000000'
-    label_text = '#bca3d6'
-    paddle = '#e8e3d9'
-    ball = '#c7dbf4'
-
-
-class Font:
-    button = ('Consolas', 18, 'bold')
-    header = ('Consolas', 22, 'bold')
-    paragraph = ('Consolas', 14, 'normal')
 
 
 def make_menu(tk: Tk):
     frame = Frame(
         tk,
         highlightthickness=2,
-        bg=Color.background,
-        highlightbackground=Color.accent,
+        bg=BACKGROUND_COLOR,
+        highlightbackground=ACCENT_COLOR,
         padx=5,
         pady=10
     )
@@ -50,12 +45,12 @@ def make_menu(tk: Tk):
             frame,
             relief='flat',
             highlightthickness=0,
-            bg=Color.accent,
-            fg=Color.button_text,
-            activebackground=Color.hover,
-            activeforeground=Color.button_text,
+            bg=ACCENT_COLOR,
+            fg=BUTTON_TEXT_COLOR,
+            activebackground=HOVER_COLOR,
+            activeforeground=BUTTON_TEXT_COLOR,
             text=text,
-            font=Font.button,
+            font=BUTTON_FONT,
             command=command
         )
         button.pack_configure(padx=25, pady=18, ipadx=70, ipady=8, fill='x')
@@ -68,7 +63,7 @@ def make_game(tk: Tk):
         width=canvas_width,
         height=canvas_height,
         highlightthickness=0,
-        bg=Color.background
+        bg=BACKGROUND_COLOR
     )
     canvas.pack_configure(expand=True, fill='both')
     paddle_width, paddle_height = 150, 10
@@ -79,7 +74,7 @@ def make_game(tk: Tk):
         paddle_x + paddle_width,
         paddle_y + paddle_height,
         width=0,
-        fill=Color.paddle
+        fill=SPRITE_COLOR
     )
     paddle_vx = 6.5
     canvas.bind_all('<Key-Left>', move_paddle_left(canvas, paddle_id, paddle_vx))
@@ -91,7 +86,7 @@ def make_game(tk: Tk):
         ball_x + 2 * ball_r,
         ball_y + 2 * ball_r,
         width=0,
-        fill=Color.ball
+        fill=SPRITE_COLOR
     )
     ball_vx, ball_vy = uniform(-2, -1), uniform(-3, -2)
     canvas.after(0, move_ball(canvas, ball_id, paddle_id, choice([ball_vx, -ball_vx]), ball_vy))
@@ -154,16 +149,16 @@ def go_to_scene(scene: Callable[[Tk], None], tk: Tk, widget: Widget) -> Callback
 
 
 def make_help(tk: Tk):
-    frame = Frame(tk, bg=Color.background, padx=10, pady=30)
+    frame = Frame(tk, bg=BACKGROUND_COLOR, padx=10, pady=30)
     frame.place_configure(relx=0.5, rely=0.5, anchor='center')
     contents = [
-        ('ping-pong', Font.header),
+        ('ping-pong', HEADER_FONT),
         (
             'It\'s a classic ping-pong game, where you\'re to hit the ball\n'
             'using the paddle. The more ball doesn\'t hit the floor, the\n'
             'more points you score. Use left and right arrows to move the\n'
             'paddle. Hit special targets to score extra points.',
-            Font.paragraph
+            PARAGRAPH_FONT
         )
     ]
     for text, font in contents:
@@ -171,8 +166,8 @@ def make_help(tk: Tk):
             frame,
             relief='flat',
             highlightthickness=0,
-            bg=Color.background,
-            fg=Color.label_text,
+            bg=BACKGROUND_COLOR,
+            fg=LABEL_TEXT_COLOR,
             text=text,
             font=font
         )
@@ -181,12 +176,12 @@ def make_help(tk: Tk):
         frame,
         relief='flat',
         highlightthickness=0,
-        bg=Color.accent,
-        fg=Color.button_text,
-        activebackground=Color.hover,
-        activeforeground=Color.button_text,
+        bg=ACCENT_COLOR,
+        fg=BUTTON_TEXT_COLOR,
+        activebackground=HOVER_COLOR,
+        activeforeground=BUTTON_TEXT_COLOR,
         text='Back',
-        font=Font.button,
+        font=BUTTON_FONT,
         command=go_to_scene(make_menu, tk, frame)
     )
     button.pack_configure(padx=25, pady=20, ipadx=130, ipady=10)
