@@ -1,5 +1,6 @@
 from tkinter import Tk, Frame, Button, Label, Canvas, Event, Widget
 from typing import Callable
+from random import choice, uniform
 
 
 def main():
@@ -19,6 +20,8 @@ class Color:
     hover = '#ffffff'
     button_text = '#000000'
     label_text = '#bca3d6'
+    paddle = '#e8e3d9'
+    ball = '#c7dbf4'
 
 
 class Font:
@@ -38,8 +41,8 @@ def make_menu(tk: Tk):
     )
     frame.place_configure(relx=0.5, rely=0.5, anchor='center')
     options = [
-        ('Play', _go_to_scene(make_game, tk, frame)),
-        ('Help', _go_to_scene(make_help, tk, frame)),
+        ('Play', go_to_scene(make_game, tk, frame)),
+        ('Help', go_to_scene(make_help, tk, frame)),
         ('Quit', tk.quit)
     ]
     for text, command in options:
@@ -59,33 +62,53 @@ def make_menu(tk: Tk):
 
 
 def make_game(tk: Tk):
+    canvas_width, canvas_height = tk.winfo_width(), tk.winfo_height()
     canvas = Canvas(
         tk,
-        width=tk.winfo_width(),
-        height=tk.winfo_height(),
+        width=canvas_width,
+        height=canvas_height,
         highlightthickness=0,
         bg=Color.background
     )
     canvas.pack_configure(expand=True, fill='both')
-    paddle_width = 150
-    paddle_id = canvas.create_rectangle(0, 0, paddle_width, 10, width=0, fill='#e8e3d9')
-    canvas.move(paddle_id, (tk.winfo_width() - paddle_width) // 2, tk.winfo_height() - 300)
+    paddle_width, paddle_height = 150, 10
+    paddle_x, paddle_y = (tk.winfo_width() - paddle_width) // 2, tk.winfo_height() - 300
+    paddle_id = canvas.create_rectangle(
+        paddle_x,
+        paddle_y,
+        paddle_x + paddle_width,
+        paddle_y + paddle_height,
+        width=0,
+        fill=Color.paddle
+    )
     paddle_vx = 6.5
-    canvas.bind_all('<Key-Left>', _move_paddle_left(canvas, paddle_id, -paddle_vx))
-    canvas.bind_all('<Key-Right>', _move_paddle_right(canvas, paddle_id, paddle_vx))
+    canvas.bind_all('<Key-Left>', move_paddle_left(canvas, paddle_id, paddle_vx))
+    canvas.bind_all('<Key-Right>', move_paddle_right(canvas, paddle_id, paddle_vx))
+    ball_x, ball_y, ball_r = 455, 300, 15
+    ball_id = canvas.create_oval(
+        ball_x,
+        ball_y,
+        ball_x + 2 * ball_r,
+        ball_y + 2 * ball_r,
+        width=0,
+        fill=Color.ball
+    )
+    ball_vx, ball_vy = uniform(-2, -1), uniform(-3, -2)
+    canvas.after(0, move_ball(canvas, ball_id, paddle_id, choice([ball_vx, -ball_vx]), ball_vy))
 
 
 Handler = Callable[[Event], None]
 
 
-def _move_paddle_left(canvas: Canvas, id_: int, vx: float) -> Handler:
+def move_paddle_left(canvas: Canvas, id_: int, vx: float) -> Handler:
     def move(_: Event):
-        if canvas.coords(id_)[0] > 0:
-            canvas.move(id_, vx, 0)
+        dx = canvas.coords(id_)[0]
+        if dx > 0:
+            canvas.move(id_, -(vx if dx > vx else dx), 0)
     return move
 
 
-def _move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
+def move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
     def move(_: Event):
         dx = canvas.winfo_width() - canvas.coords(id_)[2]
         if dx > 0:
@@ -93,7 +116,37 @@ def _move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
     return move
 
 
-def _go_to_scene(scene: Callable[[Tk], None], tk: Tk, widget: Widget) -> Callable[[], None]:
+Callback = Callable[[], None]
+
+
+def move_ball(canvas: Canvas, ball_id: int, paddle_id: int, vx: float, vy: float) -> Callback:
+    delay = 10
+    dvy = delay * 0.0012
+
+    def move():
+        ball_coords = canvas.coords(ball_id)
+        vx1 = (
+            -vx * (1 + uniform(-0.1, 0.1))
+            if ball_coords[0] <= 0 or ball_coords[2] >= canvas.winfo_width()
+            else vx
+        )
+        paddle_coords = canvas.coords(paddle_id)
+        vy1 = dvy + (
+            -vy
+            if (
+                ball_coords[1] <= 0 or
+                ball_coords[2] >= paddle_coords[0] and
+                ball_coords[0] <= paddle_coords[2] and
+                paddle_coords[1] <= ball_coords[3] <= paddle_coords[3]
+            )
+            else vy
+        )
+        canvas.move(ball_id, vx1, vy1)
+        canvas.after(delay, move_ball(canvas, ball_id, paddle_id, vx1, vy1))
+    return move
+
+
+def go_to_scene(scene: Callable[[Tk], None], tk: Tk, widget: Widget) -> Callback:
     def go_to():
         scene(tk)
         widget.destroy()
@@ -134,7 +187,7 @@ def make_help(tk: Tk):
         activeforeground=Color.button_text,
         text='Back',
         font=Font.button,
-        command=_go_to_scene(make_menu, tk, frame)
+        command=go_to_scene(make_menu, tk, frame)
     )
     button.pack_configure(padx=25, pady=20, ipadx=130, ipady=10)
 
