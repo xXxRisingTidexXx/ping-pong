@@ -1,4 +1,4 @@
-from tkinter import Tk, Frame, Button, Label, Canvas, Event, Widget
+from tkinter import Tk, Frame, Button, Label, Canvas, Event
 from typing import Callable
 from random import choice, uniform
 
@@ -19,7 +19,7 @@ def main():
     tk.wm_title('ping-pong')
     tk.wm_geometry(f'{tk.winfo_screenwidth()}x{tk.winfo_screenheight()}')
     tk.wm_resizable(0, 0)
-    # tk.wm_attributes('-topmost', 1, '-type', 'splash')
+    tk.wm_attributes('-topmost', 1, '-type', 'splash')
     tk.configure(background=BACKGROUND_COLOR)
     make_menu(tk)
     tk.mainloop()
@@ -66,8 +66,9 @@ def make_game(tk: Tk):
         bg=BACKGROUND_COLOR
     )
     canvas.pack_configure(expand=True, fill='both')
+    canvas.update()
     paddle_width, paddle_height = 150, 10
-    paddle_x, paddle_y = (tk.winfo_width() - paddle_width) // 2, tk.winfo_height() - 300
+    paddle_x, paddle_y = (canvas.winfo_width() - paddle_width) // 2, canvas.winfo_height() - 300
     paddle_id = canvas.create_rectangle(
         paddle_x,
         paddle_y,
@@ -76,7 +77,7 @@ def make_game(tk: Tk):
         width=0,
         fill=SPRITE_COLOR
     )
-    paddle_vx = 6.5
+    paddle_vx = 8
     canvas.bind_all('<Key-Left>', move_paddle_left(canvas, paddle_id, paddle_vx))
     canvas.bind_all('<Key-Right>', move_paddle_right(canvas, paddle_id, paddle_vx))
     ball_x, ball_y, ball_r = 455, 300, 15
@@ -88,8 +89,13 @@ def make_game(tk: Tk):
         width=0,
         fill=SPRITE_COLOR
     )
-    ball_vx, ball_vy = uniform(-2, -1), uniform(-3, -2)
-    canvas.after(0, move_ball(canvas, ball_id, paddle_id, choice([ball_vx, -ball_vx]), ball_vy))
+    ball_vx, ball_vy = uniform(-3, -1), uniform(-4, -2)
+    delay = 10
+    canvas.after(
+        0,
+        move_ball(canvas, ball_id, paddle_id, choice([ball_vx, -ball_vx]), ball_vy, delay)
+    )
+    canvas.after(0, check_fall(tk, canvas, ball_id, delay))
 
 
 Handler = Callable[[Event], None]
@@ -114,10 +120,14 @@ def move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
 Callback = Callable[[], None]
 
 
-def move_ball(canvas: Canvas, ball_id: int, paddle_id: int, vx: float, vy: float) -> Callback:
-    delay = 10
-    dvy = delay * 0.0012
-
+def move_ball(
+    canvas: Canvas,
+    ball_id: int,
+    paddle_id: int,
+    vx: float,
+    vy: float,
+    delay: int
+) -> Callback:
     def move():
         ball_coords = canvas.coords(ball_id)
         vx1 = (
@@ -126,7 +136,7 @@ def move_ball(canvas: Canvas, ball_id: int, paddle_id: int, vx: float, vy: float
             else vx
         )
         paddle_coords = canvas.coords(paddle_id)
-        vy1 = dvy + (
+        vy1 = delay * 0.002 + (
             -vy
             if (
                 ball_coords[1] <= 0 or
@@ -137,14 +147,25 @@ def move_ball(canvas: Canvas, ball_id: int, paddle_id: int, vx: float, vy: float
             else vy
         )
         canvas.move(ball_id, vx1, vy1)
-        canvas.after(delay, move_ball(canvas, ball_id, paddle_id, vx1, vy1))
+        canvas.after(delay, move_ball(canvas, ball_id, paddle_id, vx1, vy1, delay))
     return move
 
 
-def go_to_scene(scene: Callable[[Tk], None], tk: Tk, widget: Widget) -> Callback:
+def check_fall(tk: Tk, canvas: Canvas, id_: int, delay: int) -> Callback:
+    def check():
+        if canvas.coords(id_)[1] <= canvas.winfo_height():
+            canvas.after(delay, check)
+        else:
+            # TODO: wait for other tasks.
+            make_menu(tk)
+            canvas.destroy()
+    return check
+
+
+def go_to_scene(scene: Callable[[Tk], None], tk: Tk, frame: Frame) -> Callback:
     def go_to():
         scene(tk)
-        widget.destroy()
+        frame.destroy()
     return go_to
 
 
