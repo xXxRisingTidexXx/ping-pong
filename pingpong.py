@@ -13,6 +13,12 @@ BUTTON_FONT = ('Consolas', 18, 'bold')
 HEADER_FONT = ('Consolas', 22, 'bold')
 PARAGRAPH_FONT = ('Consolas', 14, 'normal')
 
+KEY_LEFT = '<Key-Left>'
+KEY_RIGHT = '<Key-Right>'
+
+GAME_IS_RUNNING = 'PINGPONG_GAME_IS_RUNNING'
+BALL_IS_MOVING = 'PINGPONG_BALL_IS_MOVING'
+
 
 def main():
     tk = Tk()
@@ -66,6 +72,8 @@ def make_game(tk: Tk):
         bg=BACKGROUND_COLOR
     )
     canvas.pack_configure(expand=True, fill='both')
+    canvas.setvar(GAME_IS_RUNNING)
+    canvas.setvar(BALL_IS_MOVING)
     canvas.update()
     paddle_width, paddle_height = 150, 10
     paddle_x, paddle_y = (canvas.winfo_width() - paddle_width) // 2, canvas.winfo_height() - 300
@@ -78,8 +86,8 @@ def make_game(tk: Tk):
         fill=SPRITE_COLOR
     )
     paddle_vx = 8
-    canvas.bind_all('<Key-Left>', move_paddle_left(canvas, paddle_id, paddle_vx))
-    canvas.bind_all('<Key-Right>', move_paddle_right(canvas, paddle_id, paddle_vx))
+    canvas.bind_all(KEY_LEFT, move_paddle_left(canvas, paddle_id, paddle_vx))
+    canvas.bind_all(KEY_RIGHT, move_paddle_right(canvas, paddle_id, paddle_vx))
     ball_x, ball_y, ball_r = 455, 300, 15
     ball_id = canvas.create_oval(
         ball_x,
@@ -147,7 +155,10 @@ def move_ball(
             else vy
         )
         canvas.move(ball_id, vx1, vy1)
-        canvas.after(delay, move_ball(canvas, ball_id, paddle_id, vx1, vy1, delay))
+        if canvas.getvar(GAME_IS_RUNNING) == '1':
+            canvas.after(delay, move_ball(canvas, ball_id, paddle_id, vx1, vy1, delay))
+        else:
+            canvas.setvar(BALL_IS_MOVING, '0')
     return move
 
 
@@ -156,7 +167,10 @@ def check_fall(tk: Tk, canvas: Canvas, id_: int, delay: int) -> Callback:
         if canvas.coords(id_)[1] <= canvas.winfo_height():
             canvas.after(delay, check)
         else:
-            # TODO: wait for other tasks.
+            canvas.setvar(GAME_IS_RUNNING, '0')
+            canvas.wait_variable(BALL_IS_MOVING)
+            canvas.unbind_all(KEY_LEFT)
+            canvas.unbind_all(KEY_RIGHT)
             make_menu(tk)
             canvas.destroy()
     return check
