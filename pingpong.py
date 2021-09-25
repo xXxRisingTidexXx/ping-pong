@@ -1,6 +1,11 @@
 from tkinter import Tk, Frame, Button, Label, Canvas, Event
 from typing import Callable
 from random import choice, uniform
+from pathlib import Path
+from pygame.mixer import init, music
+
+MENU_VOLUME = 0.45
+GAME_VOLUME = 1
 
 BACKGROUND_COLOR = '#000000'
 ACCENT_COLOR = '#c868db'
@@ -27,6 +32,10 @@ def main():
     tk.wm_resizable(0, 0)
     tk.wm_attributes('-topmost', 1, '-type', 'splash')
     tk.configure(background=BACKGROUND_COLOR)
+    init()
+    music.load(Path('assets') / 'ambience.ogg')
+    music.set_volume(MENU_VOLUME)
+    music.play(-1)
     make_menu(tk)
     tk.mainloop()
 
@@ -44,7 +53,7 @@ def make_menu(tk: Tk):
     options = [
         ('Play', go_to_scene(make_game, tk, frame)),
         ('Help', go_to_scene(make_help, tk, frame)),
-        ('Quit', tk.quit)
+        ('Quit', quit_tk(tk))
     ]
     for text, command in options:
         button = Button(
@@ -63,6 +72,7 @@ def make_menu(tk: Tk):
 
 
 def make_game(tk: Tk):
+    music.set_volume(GAME_VOLUME)
     canvas_width, canvas_height = tk.winfo_width(), tk.winfo_height()
     canvas = Canvas(
         tk,
@@ -171,6 +181,7 @@ def check_fall(tk: Tk, canvas: Canvas, id_: int, delay: int) -> Callback:
             canvas.wait_variable(BALL_IS_MOVING)
             canvas.unbind_all(KEY_LEFT)
             canvas.unbind_all(KEY_RIGHT)
+            music.set_volume(MENU_VOLUME)
             make_menu(tk)
             canvas.destroy()
     return check
@@ -220,6 +231,13 @@ def make_help(tk: Tk):
         command=go_to_scene(make_menu, tk, frame)
     )
     button.pack_configure(padx=25, pady=20, ipadx=130, ipady=10)
+
+
+def quit_tk(tk: Tk) -> Callback:
+    def finalize():
+        music.stop()
+        tk.quit()
+    return finalize
 
 
 if __name__ == '__main__':
