@@ -203,8 +203,8 @@ def make_help(tk: Tk):
         (
             'It\'s a classic ping-pong game, where you\'re to hit the ball\n'
             'using the paddle. The more ball doesn\'t hit the floor, the\n'
-            'more points you score. Use left and right arrows to move the\n'
-            'paddle. Hit special targets to score extra points.',
+            'more points you score. Use left and right arrows to move\n'
+            'the paddle.',
             PARAGRAPH_FONT
         )
     ]
