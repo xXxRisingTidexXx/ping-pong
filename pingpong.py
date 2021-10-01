@@ -210,6 +210,10 @@ def move_ball(
 
 
 def check_fall(tk: Tk, canvas: Canvas, id_: int, delay: int) -> Callback:
+    """
+    This task periodically verifies whether the ball has crossed the bottom line. After that the
+    job waits far other calculations to be finalized.
+    """
     def check():
         if canvas.coords(id_)[1] <= canvas.winfo_height():
             canvas.after(delay, check)
@@ -225,6 +229,9 @@ def check_fall(tk: Tk, canvas: Canvas, id_: int, delay: int) -> Callback:
 
 
 def go_to_scene(scene: Callable[[Tk], None], tk: Tk, frame: Frame) -> Callback:
+    """
+    A useful shortcut for transition between the scenes.
+    """
     def go_to():
         scene(tk)
         frame.destroy()
@@ -232,6 +239,9 @@ def go_to_scene(scene: Callable[[Tk], None], tk: Tk, frame: Frame) -> Callback:
 
 
 def make_help(tk: Tk):
+    """
+    Renders a helping message with a brief description of the game rules.
+    """
     frame = Frame(tk, bg=BACKGROUND_COLOR, padx=10, pady=30)
     frame.place_configure(relx=0.5, rely=0.5, anchor='center')
     contents = [
@@ -271,6 +281,9 @@ def make_help(tk: Tk):
 
 
 def quit_tk(tk: Tk) -> Callback:
+    """
+    Finalizes the application and exits to the host OS.
+    """
     def finalize():
         music.stop()
         tk.quit()
