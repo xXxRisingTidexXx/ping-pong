@@ -4,9 +4,11 @@ from random import uniform, choice
 from pathlib import Path
 from pygame.mixer import init, music
 
+# Music voice levels for various scenes.
 MENU_VOLUME = 0.45
 GAME_VOLUME = 1
 
+# Widget colors in hex format.
 BACKGROUND_COLOR = '#000000'
 ACCENT_COLOR = '#c868db'
 HOVER_COLOR = '#ffffff'
@@ -14,19 +16,26 @@ BUTTON_TEXT_COLOR = '#000000'
 LABEL_TEXT_COLOR = '#bca3d6'
 SPRITE_COLOR = '#e8e3d9'
 
+# Text formats.
 BUTTON_FONT = ('Consolas', 18, 'bold')
 HEADER_FONT = ('Consolas', 22, 'bold')
 PARAGRAPH_FONT = ('Consolas', 14, 'normal')
 SCORE_FONT = ('Consolas', 50, 'bold')
 
+# Unique keyboard button identifiers.
 KEY_LEFT = '<Key-Left>'
 KEY_RIGHT = '<Key-Right>'
 
+# Environment Tcl/Tk variable names.
 GAME_IS_RUNNING = 'PINGPONG_GAME_IS_RUNNING'
 BALL_IS_MOVING = 'PINGPONG_BALL_IS_MOVING'
 
 
 def main():
+    """
+    This is the game entrypoint. Here tkinter and pygame are ste up. Desktop window size, required
+    widgets, music player and so on are configured here.
+    """
     tk = Tk()
     tk.wm_title('ping-pong')
     tk.wm_geometry(f'{tk.winfo_screenwidth()}x{tk.winfo_screenheight()}')
@@ -42,6 +51,10 @@ def main():
 
 
 def make_menu(tk: Tk):
+    """
+    It's a selection activity constructor. It creates required widgets. WHat's more, it binds
+    option buttons to transitions to other scenes and to the host OS.
+    """
     frame = Frame(
         tk,
         highlightthickness=2,
@@ -73,6 +86,12 @@ def make_menu(tk: Tk):
 
 
 def make_game(tk: Tk):
+    """
+    The main activity constructor. It turns on the music volume to max level, allocates canvas and
+    manages its entity motions. Generally speaking, there're just two sprites over here: the ball
+    and the paddle. The first one is periodically re-rendered by the game, the last one's managed
+    by the player. The endgame condition is the ball being fallen over the bottom viewport border.
+    """
     music.set_volume(GAME_VOLUME)
     canvas_width, canvas_height = tk.winfo_width(), tk.winfo_height()
     canvas = Canvas(
@@ -117,10 +136,15 @@ def make_game(tk: Tk):
     canvas.after(0, check_fall(tk, canvas, ball_id, delay))
 
 
+# A shortcut for functions managing tkinter phenomena.
 Handler = Callable[[Event], None]
 
 
 def move_paddle_left(canvas: Canvas, id_: int, vx: float) -> Handler:
+    """
+    A callback maker being used to move the paddle left if possible. It's called by the event
+    'The user has pressed the left arrow button'.
+    """
     def move(_: Event):
         dx = canvas.coords(id_)[0]
         if dx > 0:
@@ -129,6 +153,10 @@ def move_paddle_left(canvas: Canvas, id_: int, vx: float) -> Handler:
 
 
 def move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
+    """
+    A callback maker being used to move the paddle right if possible. It's called by the event
+    'The user has pressed the right arrow button'.
+    """
     def move(_: Event):
         dx = canvas.winfo_width() - canvas.coords(id_)[2]
         if dx > 0:
@@ -136,6 +164,7 @@ def move_paddle_right(canvas: Canvas, id_: int, vx: float) -> Handler:
     return move
 
 
+# A shortcut for event handlers without tkinter event objects.
 Callback = Callable[[], None]
 
 
@@ -147,6 +176,13 @@ def move_ball(
     vy: float,
     delay: int
 ) -> Callback:
+    """
+    The overall game mechanics occurs here. The very first thing to mention is the implicit
+    recursion of this logic. It move the ball periodically until it falls down. This's the
+    principle of re-rendering. The second important thing is the ball speed calculation. It follows
+    uniformly accelerated motion, that's why the ball is permanently "trying" to fall. And its
+    reflections from the canvas sides and the paddle are calculated here as well.
+    """
     def move():
         ball_coords = canvas.coords(ball_id)
         vx1 = (
